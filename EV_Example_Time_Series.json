@@ -1,0 +1,43 @@
+{
+	"controls":{	
+		"station_id":{
+			"type":"dropdown",
+			"label":"NDBC Buoy",
+			"tooltip":"Select an NDBC buoy from the options provided.",
+			"default_value":"44025",
+			"options":[
+				{"name":"Station 44025","value":"44025"},
+				{"name":"Station 44022","value":"44022"}
+			]
+		},
+		"start_date":{
+			"type":"datepicker",
+			"label":"Start Date",
+			"tooltip":"Enter or select the starting date for your graph in the format: yyyy-mm-dd.",
+			"default_value":"2012-01-01",
+			"validation":{
+				"type":"datetime",
+				"format":"yyyy-mm-dd"
+			}
+		},
+		"end_date":{
+			"type":"datepicker",
+			"label":"End Date",
+			"tooltip":"Enter or select the ending date for your graph in the format: yyyy-mm-dd",
+			"default_value":"2012-01-31",
+			"validation":{
+				"type":"datetime",
+				"format":"yyyy-mm-dd"
+			}
+		},
+		"color":{
+			"type":"colorpicker",
+			"label":"Line Color",
+			"tooltip":"Select a hexidecimal line color for your graph.",
+			"default_value":"#6699CC",
+			"validation":{
+				"type":"hexcolor"
+			}
+		}
+	}
+}
