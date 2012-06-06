@@ -1,0 +1,56 @@
+{
+	"controls":{	
+		"date_start":{
+			"type":"datepicker",
+			"label":"Start Date",
+			"tooltip":"Enter or select the starting date for your graph in the format yyyy-mm-dd.",
+			"default_value":"2010-01-01",
+			"validation":{
+				"type":"datetime",
+				"format":"yyyy-mm-dd"
+			}
+		},
+		"date_end":{
+			"type":"datepicker",
+			"label":"End Date",
+			"tooltip":"Enter or select the ending date for your graph in the format (yyyy-mm-dd)",
+			"default_value":"2010-01-31",
+			"validation":{
+				"type":"datetime",
+				"format":"yyyy-mm-dd"
+			}
+		},
+		"station1":{
+			"type":"textbox",
+			"label":"Station 1",
+			"tooltip":"Enter an NDBC station ID (i.e. 44025) to display initially.",
+			"default_value":"44025"
+		},
+		"param1":{
+			"type":"dropdown",
+			"label":"Select a Buoy",
+			"tooltip":"Select an NDBC buoy from the options provided.",
+			"default_value":"sea_water_salinity",
+			"options":[
+				{"name":"Temperature","value":"sea_water_temperature"},
+				{"name":"Salinity","value":"sea_water_salinity"}
+			]
+		},
+		"station2":{
+			"type":"textbox",
+			"label":"Station 2",
+			"tooltip":"Enter an NDBC station ID (i.e. 44025) to display initially.",
+			"default_value":"44027"
+		},
+		"param2":{
+			"type":"dropdown",
+			"label":"Select a Buoy",
+			"tooltip":"Select an NDBC buoy from the options provided.",
+			"default_value":"sea_water_temperature",
+			"options":[
+				{"name":"Temperature","value":"sea_water_temperature"},
+				{"name":"Salinity","value":"sea_water_salinity"}
+			]
+		}
+	}
+}
