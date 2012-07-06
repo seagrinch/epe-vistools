@@ -41,6 +41,38 @@ var EV2_Time_Series_Explorer = function (dom_id, config_override) {
       "column": "sea_water_salinity (psu)",
       "units": "",
       "units2": ""
+    },
+    "air_temperature": {
+      "name": "Air Temperature",
+      "label": "Air Temperature (C)",
+      "query_param": "air_temperature",
+      "column": "air_temperature (C)",
+      "units": "&deg;C",
+      "units2": "Degrees Celcius"
+    },
+    "air_pressure_at_sea_level": {
+      "name": "Air Pressure",
+      "label": "Air Pressure (hPa)",
+      "query_param": "air_pressure_at_sea_level",
+      "column": "air_pressure_at_sea_level (hPa)",
+      "units": "hPa",
+      "units2": "hPa"
+    },
+    "waves": {
+      "name": "Significant Wave Height",
+      "label": "Significant Wave Height (m)",
+      "query_param": "waves",
+      "column": "sea_surface_wave_significant_height (m)",
+      "units": "meters",
+      "units2": "meters"
+    },
+    "winds": {
+      "name": "Wind Speed",
+      "label": "Wind Speed (m/s)",
+      "query_param": "winds",
+      "column": "wind_speed (m/s)",
+      "units": "m/s",
+      "units2": "m/s"
     }
   };
 

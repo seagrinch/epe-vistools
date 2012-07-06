@@ -20,36 +20,50 @@
 				"format":"yyyy-mm-dd"
 			}
 		},
+    "station_list": {
+        "type": "textarea",
+        "label": "Station List",
+        "tooltip": "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.",
+        "default_value": "44025|LONG ISLAND 33\n44027|Jonesport, Maine"
+    },
 		"station1":{
 			"type":"textbox",
 			"label":"Station 1",
-			"tooltip":"Enter an NDBC station ID (i.e. 44025) to display initially.",
-			"default_value":"44025"
+			"tooltip":"Enter an NDBC station ID (i.e. 44025) to display when the graph first loads. The ID must be in the station list above.",
+			"default_value":"44027"
 		},
 		"param1":{
 			"type":"dropdown",
-			"label":"Select a Buoy",
-			"tooltip":"Select an NDBC buoy from the options provided.",
-			"default_value":"sea_water_salinity",
+			"label":"Select a parameter",
+			"tooltip":"Select a parameter from the options provided.",
+			"default_value":"sea_water_temperature",
 			"options":[
-				{"name":"Temperature","value":"sea_water_temperature"},
-				{"name":"Salinity","value":"sea_water_salinity"}
+				{"name":"Water Temperature","value":"sea_water_temperature"},
+				{"name":"Salinity","value":"sea_water_salinity"},
+				{"name":"Air Temperature","value":"air_temperature"},
+				{"name":"Air Pressure","value":"air_pressure_at_sea_level"},
+				{"name":"Waves","value":"waves"},
+				{"name":"Wind","value":"winds"}
 			]
 		},
 		"station2":{
 			"type":"textbox",
 			"label":"Station 2",
-			"tooltip":"Enter an NDBC station ID (i.e. 44025) to display initially.",
-			"default_value":"44027"
+			"tooltip":"Enter an NDBC station ID (i.e. 44025) to display when the graph first loads. The ID must be in the station list above.",
+			"default_value":"44025"
 		},
 		"param2":{
 			"type":"dropdown",
-			"label":"Select a Buoy",
-			"tooltip":"Select an NDBC buoy from the options provided.",
-			"default_value":"sea_water_temperature",
+			"label":"Select a parameter",
+			"tooltip":"Select a parameter from the options provided.",
+			"default_value":"sea_water_salinity",
 			"options":[
-				{"name":"Temperature","value":"sea_water_temperature"},
-				{"name":"Salinity","value":"sea_water_salinity"}
+				{"name":"Water Temperature","value":"sea_water_temperature"},
+				{"name":"Salinity","value":"sea_water_salinity"},
+				{"name":"Air Temperature","value":"air_temperature"},
+				{"name":"Air Pressure","value":"air_pressure_at_sea_level"},
+				{"name":"Waves","value":"waves"},
+				{"name":"Wind","value":"winds"}
 			]
 		}
 	}
