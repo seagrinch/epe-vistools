@@ -13,7 +13,7 @@ var EV2_Time_Series_Explorer = function (dom_id, config_override) {
     "title": "EV TOOL 2",
     "subtitle": "Time Series Explorer",
 
-    "station_list": ["44025|LONG ISLAND 33", "44027|Jonesport, Maine"],
+    "station_list": "44025|LONG ISLAND 33\n44027|Jonesport, Maine",
 
     "date_start": "2010-01-01",
     "date_end": "2010-01-14",
@@ -78,12 +78,9 @@ EV2_Time_Series_Explorer.prototype.parse_configuration = function(config_overrid
 };
 
 EV2_Time_Series_Explorer.prototype.draw = function () {
-
   var self = this;
-
-  $.each(this.configuration.station_list, function (station) {
-
-    var parts = self.configuration.station_list[station].split("|");
+  $.each(this.configuration.station_list.split("\n"), function (index,station) {
+    var parts = station.split("|");
 
     var station_id = parts[0];
     var station_name = parts[1];
