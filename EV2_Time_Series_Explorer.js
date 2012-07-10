@@ -95,7 +95,7 @@ var EV2_Time_Series_Explorer = function (dom_id, config_override) {
 
 EV2_Time_Series_Explorer.prototype.loadingDiv = function(){
 	// Create a load
-	$('#'+this.dom_element).html('<img id="loading_'+ this.dom_element + '" src="' + EV_BASE_URL + 'img/' + 'loading_a.gif" alt="Loading..."/>');
+	$('#'+this.dom_element).html('<img id="loading_'+ this.dom_element + '" src=http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
 }
 
 EV2_Time_Series_Explorer.prototype.parse_configuration = function(config_override){
@@ -340,7 +340,7 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
   var tool_container = d3.select("#"+this.dom_element).append("div").attr("id", "tool-container")
 
   // loading div.. append it to the tool container
-  this.d_loading = tool_container.append("div").attr("id", "div-loading").style("z-index", "100").style("float", "left").style("position", "absolute").style("width", self.chart.layout.container.width + "px").style("height", self.chart.layout.container.height + "px").style("opacity", ".8").style("background-color", "#CCCCCC").style("visibility", "hidden").append("div").append("img").attr("src", EV_BASE_URL + "img/chart_loading.gif").attr("alt", "LOADING....").style("position", "absolute").style("top", (self.chart.layout.container.height) / 2 - 20 + "px").style("left", (self.chart.layout.container.width / 2) - 30 + "px")
+  this.d_loading = tool_container.append("div").attr("id", "div-loading").style("z-index", "100").style("float", "left").style("position", "absolute").style("width", self.chart.layout.container.width + "px").style("height", self.chart.layout.container.height + "px").style("opacity", ".8").style("background-color", "#CCCCCC").style("visibility", "hidden").append("div").append("img").attr("src", "http://epe.marine.rutgers.edu/visualization/img/chart_loading.gif").attr("alt", "LOADING....").style("position", "absolute").style("top", (self.chart.layout.container.height) / 2 - 20 + "px").style("left", (self.chart.layout.container.width / 2) - 30 + "px")
 
   //TODO: set dimensions for modal to appear centered on chart, not on container div
 
@@ -392,9 +392,9 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
   tool_container.append("div").attr("id", "controls-div").style("width", self.chart.layout.container.width + "px")
 
 
-  var queryString_p1 = EV_BASE_URL + 'proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config.station1 + '&observedproperty=' + config.param1 + '&responseformat=text/csv' + '&eventtime=' + config.date_start + 'T00:00Z/' + config.date_end + 'T00:00Z';
+  var queryString_p1 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config.station1 + '&observedproperty=' + config.param1 + '&responseformat=text/csv' + '&eventtime=' + config.date_start + 'T00:00Z/' + config.date_end + 'T00:00Z';
 
-  var queryString_p2 = EV_BASE_URL + 'proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config.station2 + '&observedproperty=' + config.param2 + '&responseformat=text/csv' + '&eventtime=' + config.date_start + 'T00:00Z/' + config.date_end + 'T00:00Z';
+  var queryString_p2 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config.station2 + '&observedproperty=' + config.param2 + '&responseformat=text/csv' + '&eventtime=' + config.date_start + 'T00:00Z/' + config.date_end + 'T00:00Z';
 
 
   //    console.log(".... Query Strings ....")
@@ -644,9 +644,9 @@ EV2_Time_Series_Explorer.prototype.chart_datasets_update = function () {
   // we can compare the configs to determine what kind of updates are necessary
 
   // define query strings
-  var queryString_param1 = EV_BASE_URL + 'proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config_custom.station1 + '&observedproperty=' + config_custom.param1 + '&responseformat=text/csv' + '&eventtime=' + config_custom.date_start + 'T00:00Z/' + config_custom.date_end + 'T00:00Z';
+  var queryString_param1 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config_custom.station1 + '&observedproperty=' + config_custom.param1 + '&responseformat=text/csv' + '&eventtime=' + config_custom.date_start + 'T00:00Z/' + config_custom.date_end + 'T00:00Z';
 
-  var queryString_param2 = EV_BASE_URL + 'proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config_custom.station2 + '&observedproperty=' + config_custom.param2 + '&responseformat=text/csv' + '&eventtime=' + config_custom.date_start + 'T00:00Z/' + config_custom.date_end + 'T00:00Z';
+  var queryString_param2 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config_custom.station2 + '&observedproperty=' + config_custom.param2 + '&responseformat=text/csv' + '&eventtime=' + config_custom.date_start + 'T00:00Z/' + config_custom.date_end + 'T00:00Z';
 
   //    console.log(".... Query Strings ....")
   //    console.log(queryString_param1);
