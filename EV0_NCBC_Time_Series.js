@@ -6,7 +6,7 @@
 // Written by Mike Mills and Sage Lichtenwalner, Rutgers University
 // Revised 6/5/12
 
-var EV_Example_Time_Series = function(dom_id,config_override){
+var EV0_NCBC_Time_Series = function(dom_id,config_override){
 	
   // Default Configuration
 	this.configuration = {
@@ -74,12 +74,12 @@ var EV_Example_Time_Series = function(dom_id,config_override){
 	
 }
 
-EV_Example_Time_Series.prototype.loadingDiv = function(){
+EV0_NCBC_Time_Series.prototype.loadingDiv = function(){
 	// Create a load
-	$('#'+this.dom_container).html('<img id="loading_'+ this.dom_element + '" src="' + EV_BASE_URL + 'img/' + 'loading_a.gif" alt="Loading..."/>');
+	$('#'+this.dom_container).html('<img id="loading_'+ this.dom_element + '" src="http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
 }
 
-EV_Example_Time_Series.prototype.parse_configuration = function(config_override){
+EV0_NCBC_Time_Series.prototype.parse_configuration = function(config_override){
 	
 	if(typeof(config_override)=="undefined"){
 		console.log("no settings passed, default configuration loaded");		
@@ -90,7 +90,7 @@ EV_Example_Time_Series.prototype.parse_configuration = function(config_override)
 	}	
 };
 
-EV_Example_Time_Series.prototype.parse_dataset = function(){
+EV0_NCBC_Time_Series.prototype.parse_dataset = function(){
 	var self = this;
 	
 	// get web service URL	
@@ -179,7 +179,7 @@ EV_Example_Time_Series.prototype.parse_dataset = function(){
 	
 }
 
-EV_Example_Time_Series.prototype.draw = function(){
+EV0_NCBC_Time_Series.prototype.draw = function(){
 	
 	var self = this;
 	var domain = self.graph.domain;
@@ -251,10 +251,9 @@ EV_Example_Time_Series.prototype.draw = function(){
 	$("#loading_" + self.dom_element).hide();
 }
 
-EV_Example_Time_Series.prototype.IOOS_querystring = function(){
+EV0_NCBC_Time_Series.prototype.IOOS_querystring = function(){
 	
-	var queryString = 
-	EV_BASE_URL + 'proxy_ndbc.php?http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:'+ this.configuration.station_id + 
+	var queryString = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:'+ this.configuration.station_id + 
 	'&observedproperty=' + this.datasource.metadata.qParam + 
 	'&responseformat=text/csv' + 
 	'&eventtime=' + this.configuration.start_date + 'T00:00Z/'+ this.configuration.end_date + 'T00:00Z';
@@ -262,7 +261,7 @@ EV_Example_Time_Series.prototype.IOOS_querystring = function(){
 	return queryString;	
 }
 
-EV_Example_Time_Series.prototype.id = function(){
+EV0_NCBC_Time_Series.prototype.id = function(){
 	// this is simple for now, its here in case we wanted to add any additional naming functionality
 //	return this.dom_element + "_" + new Date().getMinutes() + "_" + new Date().getMilliseconds()+ "_container";
 //	return this.dom_element + "_container";
