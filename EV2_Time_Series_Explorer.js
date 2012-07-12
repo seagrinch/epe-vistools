@@ -955,7 +955,7 @@ EV2_Time_Series_Explorer.prototype.add_data = function (param) {
   }).attr("d", d3.svg.symbol().type((param == "param1") ? "circle" : "triangle-up")).on("mouseover", function (d) {
     return self.chart.tooltip.style("visibility", "visible").html(self.dateFormats.tooltip(d["date_time"]) + " - <b>" + d[colY] + " " + units + "</b>")
   }).on("mousemove", function () {
-    return self.chart.tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
+    return self.chart.tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
   }).on("mouseout", function () {
     return self.chart.tooltip.style("visibility", "hidden");
   });
@@ -1069,7 +1069,7 @@ EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
   d3.select(".datapoints-" + param).selectAll("path").data(data).on("mouseover", function (d) {
     return self.chart.tooltip.style("visibility", "visible").html(self.dateFormats.tooltip(d["date_time"]) + " - <b>" + d[colY] + " " + units + "</b>")
   }).on("mousemove", function () {
-    return self.chart.tooltip.style("top", (event.pageY - 10) + "px").style("left", (event.pageX + 10) + "px");
+    return self.chart.tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
   }).on("mouseout", function () {
     return self.chart.tooltip.style("visibility", "hidden");
   });
