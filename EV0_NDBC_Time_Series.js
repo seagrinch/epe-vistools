@@ -6,7 +6,7 @@
 // Written by Mike Mills and Sage Lichtenwalner, Rutgers University
 // Revised 6/5/12
 
-var EV0_NCBC_Time_Series = function(dom_id,config_override){
+var EV0_NDBC_Time_Series = function(dom_id,config_override){
 	
   // Default Configuration
 	this.configuration = {
@@ -17,6 +17,49 @@ var EV0_NCBC_Time_Series = function(dom_id,config_override){
 		end_date:"2012-02-01",
 		color:"#6699CC",
   };
+
+  // Configuration Controls
+	this.controls = {	
+		"station_id":{
+			"type":"dropdown",
+			"label":"NDBC Buoy",
+			"tooltip":"Select an NDBC buoy from the options provided.",
+			"default_value":"44025",
+			"options":[
+				{"name":"Station 44025","value":"44025"},
+				{"name":"Station 44022","value":"44022"}
+			]
+		},
+		"start_date":{
+			"type":"datepicker",
+			"label":"Start Date",
+			"tooltip":"Enter or select the starting date for your graph in the format: yyyy-mm-dd.",
+			"default_value":"2012-01-01",
+			"validation":{
+				"type":"datetime",
+				"format":"yyyy-mm-dd"
+			}
+		},
+		"end_date":{
+			"type":"datepicker",
+			"label":"End Date",
+			"tooltip":"Enter or select the ending date for your graph in the format: yyyy-mm-dd",
+			"default_value":"2012-01-31",
+			"validation":{
+				"type":"datetime",
+				"format":"yyyy-mm-dd"
+			}
+		},
+		"color":{
+			"type":"colorpicker",
+			"label":"Line Color",
+			"tooltip":"Select a hexidecimal line color for your graph.",
+			"default_value":"#6699CC",
+			"validation":{
+				"type":"hexcolor"
+			}
+		}
+	};
 
   // Datasource Configuration
   this.datasource = {
@@ -74,12 +117,12 @@ var EV0_NCBC_Time_Series = function(dom_id,config_override){
 	
 }
 
-EV0_NCBC_Time_Series.prototype.loadingDiv = function(){
+EV0_NDBC_Time_Series.prototype.loadingDiv = function(){
 	// Create a load
 	$('#'+this.dom_container).html('<img id="loading_'+ this.dom_element + '" src="http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
 }
 
-EV0_NCBC_Time_Series.prototype.parse_configuration = function(config_override){
+EV0_NDBC_Time_Series.prototype.parse_configuration = function(config_override){
 	
 	if(typeof(config_override)=="undefined"){
 		console.log("no settings passed, default configuration loaded");		
@@ -90,7 +133,7 @@ EV0_NCBC_Time_Series.prototype.parse_configuration = function(config_override){
 	}	
 };
 
-EV0_NCBC_Time_Series.prototype.parse_dataset = function(){
+EV0_NDBC_Time_Series.prototype.parse_dataset = function(){
 	var self = this;
 	
 	// get web service URL	
@@ -179,7 +222,7 @@ EV0_NCBC_Time_Series.prototype.parse_dataset = function(){
 	
 }
 
-EV0_NCBC_Time_Series.prototype.draw = function(){
+EV0_NDBC_Time_Series.prototype.draw = function(){
 	
 	var self = this;
 	var domain = self.graph.domain;
@@ -251,7 +294,7 @@ EV0_NCBC_Time_Series.prototype.draw = function(){
 	$("#loading_" + self.dom_element).hide();
 }
 
-EV0_NCBC_Time_Series.prototype.IOOS_querystring = function(){
+EV0_NDBC_Time_Series.prototype.IOOS_querystring = function(){
 	
 	var queryString = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:'+ this.configuration.station_id + 
 	'&observedproperty=' + this.datasource.metadata.qParam + 
@@ -261,7 +304,7 @@ EV0_NCBC_Time_Series.prototype.IOOS_querystring = function(){
 	return queryString;	
 }
 
-EV0_NCBC_Time_Series.prototype.id = function(){
+EV0_NDBC_Time_Series.prototype.id = function(){
 	// this is simple for now, its here in case we wanted to add any additional naming functionality
 //	return this.dom_element + "_" + new Date().getMinutes() + "_" + new Date().getMilliseconds()+ "_container";
 //	return this.dom_element + "_container";

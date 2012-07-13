@@ -8,22 +8,28 @@
 // Version 0.1.3 - edited
 var EV2_Time_Series_Explorer = function (dom_id, config_override) {
 
+  // Default Configuration
   this.configuration = {
-
     "title": "EV TOOL 2",
     "subtitle": "Time Series Explorer",
-
     "station_list": "44025|LONG ISLAND 33\n44027|Jonesport, Maine",
-
     "date_start": "2010-01-01",
     "date_end": "2010-01-14",
-
     "station1": "44025",
     "param1": "sea_water_salinity",
     "station2": "44027",
     "param2": "sea_water_temperature"
-
   };
+
+  // Configuration Controls
+	this.controls = {	
+    "station_list": {
+        "type": "textarea",
+        "label": "Station List",
+        "tooltip": "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.",
+        "default_value": "44025|LONG ISLAND 33\n44027|Jonesport, Maine"
+    },
+	}
 
   this.parameters = {
     "sea_water_temperature": {
