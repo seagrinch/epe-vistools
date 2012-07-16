@@ -555,10 +555,10 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
   $('<div class="row-fluid"></div>').attr({
     id: "param1"
-  }).append($(ctrl_dd_station1).addClass("span5")).append($(ctrl_dd_param1).addClass("span5"))).append(
+  }).append($(ctrl_dd_station1)).append($(ctrl_dd_param1))).append(
   $('<div class="row-fluid"></div>').attr({
     id: "param2"
-  }).append($(ctrl_dd_station2).addClass("span5")).append($(ctrl_dd_param2).addClass("span5"))).appendTo("#modal-body-params");
+  }).append($(ctrl_dd_station2)).append($(ctrl_dd_param2))).appendTo("#modal-body-params");
 
   // add click events for visualization update buttons
   $('.vis_update').on('click', function (a) {
