@@ -21,9 +21,10 @@ var EV0_NDBC_Time_Series = function(dom_id,config_override){
   // Configuration Controls
 	this.controls = {	
 		"station_id":{
-			"type":"dropdown",
+			"type":"textbox",
 			"label":"NDBC Buoy",
-			"tooltip":"Select an NDBC buoy from the options provided.",
+			"tooltip":"Enter an NDBC buoy id.",
+			//"tooltip":"Select an NDBC buoy from the options provided.",
 			"default_value":"44025",
 			"options":[
 				{"name":"Station 44025","value":"44025"},
