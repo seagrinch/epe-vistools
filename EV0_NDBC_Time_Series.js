@@ -111,6 +111,13 @@ var EV0_NDBC_Time_Series = function(dom_id,config_override){
 	this.loadingDiv();
 	
 	// do configuration overrides exist? if so, parse overrides
+	//this.tool.configuration.custom = $.extend(true, {}, this.configuration);
+	this.tool = {
+	  configuration:{
+	    default:this.configuration,
+	    custom:this.configuration
+    }
+  };
 	this.parse_configuration(config_override);
 	
 	// parse dataset and draw graph
@@ -124,13 +131,12 @@ EV0_NDBC_Time_Series.prototype.loadingDiv = function(){
 }
 
 EV0_NDBC_Time_Series.prototype.parse_configuration = function(config_override){
-	
 	if(typeof(config_override)=="undefined"){
 		console.log("no settings passed, default configuration loaded");		
 	}
 	else{
 		//override settings exist, so merge overrides into configuration
-		$.extend(true,this.configuration,config_override);
+		$.extend(true,this.tool.configuration.custom,config_override);
 	}	
 };
 
@@ -289,7 +295,7 @@ EV0_NDBC_Time_Series.prototype.draw = function(){
 		.attr("clip-path", "url(#clip_"+ this.dom_element + ")")
 		.attr("d", line)
 		.style("fill","none")
-		.style("stroke", self.configuration.color)
+		.style("stroke", self.tool.configuration.custom.color)
 		.style("stroke-width","2");
 
 	$("#loading_" + self.dom_element).hide();
@@ -297,10 +303,10 @@ EV0_NDBC_Time_Series.prototype.draw = function(){
 
 EV0_NDBC_Time_Series.prototype.IOOS_querystring = function(){
 	
-	var queryString = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:'+ this.configuration.station_id + 
+	var queryString = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:'+ this.tool.configuration.custom.station_id + 
 	'&observedproperty=' + this.datasource.metadata.qParam + 
 	'&responseformat=text/csv' + 
-	'&eventtime=' + this.configuration.start_date + 'T00:00Z/'+ this.configuration.end_date + 'T00:00Z';
+	'&eventtime=' + this.tool.configuration.custom.start_date + 'T00:00Z/'+ this.tool.configuration.custom.end_date + 'T00:00Z';
 
 	return queryString;	
 }
