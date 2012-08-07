@@ -1,0 +1,40 @@
+svg {
+    /* font: 12px sans-serif;*/
+}
+
+.ctlhandle{margin:6px;}
+
+.control {
+    margin: 3px;
+    padding: 3px;
+    /*  width:220px;*/
+    overflow: visible;
+    border: 2px solid #FFFFFF;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    font-size: 10px;
+}
+.ctrl {
+    margin-top: 9px;
+    padding: 3px;
+}
+
+input, textarea, select, .uneditable-input {
+/*    width: auto !important;*/
+}
+
+.chart-label-y{
+    font-size:14px;
+}
+.chart-label-x{
+    font-size:14px;
+}
+.chart-title{
+    font-size:14px;
+}
+
+label{
+    font-weight:500 !important;
+}
+
+.profile-info-box-a{margin:1px;padding:2px; border:1px solid #CCCCCC; }
