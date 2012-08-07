@@ -1,0 +1,68 @@
+svg {
+    /* font: 12px sans-serif;*/
+}
+
+.x.axis path {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis-right path, .axis-right line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.axis-left path, .axis-left line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.control {
+    margin: 3px;
+    padding: 3px;
+    /*	width:220px;*/
+    overflow: visible;
+    border: 2px solid #FFFFFF;
+    -moz-border-radius: 6px;
+    border-radius: 6px;
+    font-size: 10px;
+}
+
+.control:hover {
+    /*border-color:#000000;*/
+}
+
+.legend_timeseries {
+    fill: #FFFFFF;
+    stroke: steelblue;
+    stroke-width: 3px;
+}
+
+#legend-timeseries-circle {
+    stroke: steelblue;
+}
+
+#focus-g text {
+    fill: black;
+}
+
+.datapoints-param1 circle, .datapoints-param2 triangle {
+    opacity: 1;
+    /*fill:green;*/
+}
+
+input, textarea, select, .uneditable-input {
+    /*width: auto !important;*/
+}
+
+#legend-stats div {
+    text-align: center
+}
+
+#legend-stats{
+    max-height:200px;
+    overflow-y:scroll;
+}
