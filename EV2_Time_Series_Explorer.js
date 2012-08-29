@@ -1,13 +1,17 @@
 // NDBC Time Series Explorer (EV-T2)
 //
-// Ocean Observatories Initiative 
+// Ocean Observatories Initiative
 // Education & Public Engagement Implementing Organization
 //
 // Written by Mike Mills and Sage Lichtenwalner, Rutgers University
-// Revised 8/6/12
-// Version 0.1.4 - edited
+// Revised 8/24/12
+// Version 0.1.8
 
-var EV2_Time_Series_Explorer = function (dom_id, config_override) {
+var EV2_Time_Series_Explorer = function ( dom_id, customToolConfiguration ) {
+
+    var self = this;
+    this.evtool = new EVTool();
+    this.sos = new ioosSOS();
 
     // Default Configuration
     this.configuration = {
@@ -32,76 +36,33 @@ var EV2_Time_Series_Explorer = function (dom_id, config_override) {
         }
     }
 
-    this.parameters = {
-        "sea_water_temperature": {
-            "name": "Sea Water Temperature",
-            "label": "Sea Water Temperature (C)",
-            "query_param": "sea_water_temperature",
-            "column": "sea_water_temperature (C)",
-            "units": "&deg;C",
-            "units2": "Degrees Celcius"
-        },
-        "sea_water_salinity": {
-            "name": "Sea Water Salinity",
-            "label": "Sea Water Salinity",
-            "query_param": "sea_water_salinity",
-            "column": "sea_water_salinity (psu)",
-            "units": "",
-            "units2": ""
-        },
-        "air_temperature": {
-            "name": "Air Temperature",
-            "label": "Air Temperature (C)",
-            "query_param": "air_temperature",
-            "column": "air_temperature (C)",
-            "units": "&deg;C",
-            "units2": "Degrees Celcius"
-        },
-        "air_pressure_at_sea_level": {
-            "name": "Air Pressure",
-            "label": "Air Pressure (hPa)",
-            "query_param": "air_pressure_at_sea_level",
-            "column": "air_pressure_at_sea_level (hPa)",
-            "units": "hPa",
-            "units2": "hPa"
-        },
-        "waves": {
-            "name": "Significant Wave Height",
-            "label": "Significant Wave Height (m)",
-            "query_param": "waves",
-            "column": "sea_surface_wave_significant_height (m)",
-            "units": "meters",
-            "units2": "meters"
-        },
-        "winds": {
-            "name": "Wind Speed",
-            "label": "Wind Speed (m/s)",
-            "query_param": "winds",
-            "column": "wind_speed (m/s)",
-            "units": "m/s",
-            "units2": "m/s"
-        }
-    };
+    this.parameters = this.sos.getObservationObj(
+        [
+            "sea_water_temperature",
+            "sea_water_salinity",
+            "air_temperature",
+            "air_pressure_at_sea_level",
+            "waves",
+            "winds"
+        ]
+    );
 
     // NBDC Station List: --> http://www.ndbc.noaa.gov/to_station.shtml
     this.stations = {};
 
     this.tool = {
         configuration:{
-            custom:{},
-            default:{}
+            custom:self.configuration,
+            default:self.configuration
         }
     }
 
+    console.log("customToolConfiguration", typeof(customToolConfiguration));
+
+    this.evtool.configurationParse( self.tool.configuration.custom, customToolConfiguration );
+
     // Identify the DOM element where the Visualization will be placed.
     if(typeof(dom_id)!="undefined") this.dom_element = dom_id; else this.dom_element = "ev";
-
-    // Create placeholder loading image
-//	this.loadingDiv();
-
-    // do configuration overrides exist? if so, parse overrides
-    console.log("self.configuration",this.configuration)
-    this.parse_configuration(config_override);
 
     // Draw graph
     this.draw();
@@ -113,33 +74,15 @@ EV2_Time_Series_Explorer.prototype.loadingDiv = function(){
     $('#'+this.dom_element).html('<img id="loading_'+ this.dom_element + '" src=http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
 }
 
-EV2_Time_Series_Explorer.prototype.parse_configuration = function(config_override){
-
-    var self = this;
-
-    // set defaults
-    $.extend( true, self.tool.configuration.default, self.configuration);
-    $.extend( true, self.tool.configuration.custom, self.configuration);
-
-    if(typeof(config_override)=="undefined"){
-        console.log("no settings passed, default configuration loaded");
-        $.extend( true, self.tool.configuration.custom, self.configuration)
-    }
-    else{
-        //override settings exist, so merge overrides into configuration
-        $.extend( true, self.tool.configuration.custom, config_override);
-    }
-
-};
 
 EV2_Time_Series_Explorer.prototype.draw = function () {
     var self = this;
 
-    var config = self.tool.configuration.custom;
+    var configCustom = self.tool.configuration.custom;
 
-    console.log("DRAW CONFIG:", config)
+    console.log("DRAW CONFIG:", configCustom)
 
-    $.each(config.station_list.split("\n"), function (index,station) {
+    $.each(configCustom.station_list.split("\n"), function (index,station) {
         var parts = station.split("|");
 
         var station_id = parts[0];
@@ -291,10 +234,6 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
                 max: null
             }
         },
-//        config: {
-//            default: self.configuration,
-//            custom: {}
-//        },
         areParamsSame: function () {
             if (self.chart.timeseries.datasets.param1.column == self.chart.timeseries.datasets.param2.column) return true;
             else return false;
@@ -302,23 +241,13 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
     };
 
-
     // set the defaults based on the configuration provided
-    //this.chart.timeseries.datasets.param1.column = self.chart.timeseries.config.default.param1;
-    //this.chart.timeseries.datasets.param2.column = self.chart.timeseries.config.default.param2;
 
-
-    this.chart.timeseries.datasets.param1.column = config.param1;
-    this.chart.timeseries.datasets.param2.column = config.param2;
+    this.chart.timeseries.datasets.param1.column = configCustom.param1;
+    this.chart.timeseries.datasets.param2.column = configCustom.param2;
 
     this.chart.timeseries.datasets.param1.visible = true;
     this.chart.timeseries.datasets.param2.visible = true;
-
-    //var config = this.chart.timeseries.config.default;
-
-    // copy the default settings for the instance to the current custom config object
-//    $.extend(true, self.chart.timeseries.config.custom, self.chart.timeseries.config.
-//        default);
 
     // create the brush function event handler for the one of the parameters in the context.
     this.chart.brush = d3.svg.brush().x(self.chart.context.param1.x).on("brush", brush);
@@ -341,7 +270,6 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .style("padding", "3px")
         .style("border", "1px solid #333333")
         .text("");
-
 
     //    interpolations:
     //        linear
@@ -382,69 +310,171 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
             return self.chart.focus.param2.y(d[self.chart.timeseries.datasets.param2.column]);
         });
 
-
-    var tool_container = d3.select("#"+this.dom_element).append("div").attr("id", "tool-container")
+    var tool_container = d3.select("#"+this.dom_element).append("div")
+        .attr("id", "tool-container")
 
     // loading div.. append it to the tool container
-    this.d_loading = tool_container.append("div").attr("id", "div-loading").style("z-index", "100").style("float", "left").style("position", "absolute").style("width", self.chart.layout.container.width + "px").style("height", self.chart.layout.container.height + "px").style("opacity", ".8").style("background-color", "#CCCCCC").style("visibility", "hidden").append("div").append("img").attr("src", "http://epe.marine.rutgers.edu/visualization/img/chart_loading.gif").attr("alt", "LOADING....").style("position", "absolute").style("top", (self.chart.layout.container.height) / 2 - 20 + "px").style("left", (self.chart.layout.container.width / 2) - 30 + "px")
+    this.d_loading = tool_container.append("div")
+        .attr("id", "div-loading")
+        .style("z-index", "100")
+        .style("float", "left")
+        .style("position", "absolute")
+        .style("width", self.chart.layout.container.width + "px")
+        .style("height", self.chart.layout.container.height + "px")
+        .style("opacity", ".8")
+        .style("background-color", "#CCCCCC")
+        .style("visibility", "hidden").append("div").append("img")
+        .attr("src", "http://epe.marine.rutgers.edu/visualization/img/chart_loading.gif")
+        .attr("alt", "LOADING....")
+        .style("position", "absolute")
+        .style("top", (self.chart.layout.container.height) / 2 - 20 + "px")
+        .style("left", (self.chart.layout.container.width / 2) - 30 + "px")
 
     //TODO: set dimensions for modal to appear centered on chart, not on container div
 
     // add modal div for dates
-    tool_container.append("div").attr("id", "modal-dates").attr("class", "modal hide fade").html('<div class="modal-header">' + '        <button class="close" data-dismiss="modal">×</button>' + '        <h3>Date Selection</h3>' + '</div>' + '<div id="modal-body-dates" class="modal-body">' + '        </div>' + '<div id="modal-footer-dates" class="modal-footer">' + '       <a class="btn btn-primary vis_update">Update Visualization</a>' + '</div>');
+    tool_container.append("div")
+        .attr("id", "modal-dates")
+        .attr("class", "modal hide fade").html('<div class="modal-header">' +
+        '        <button class="close" data-dismiss="modal">×</button>' +
+        '        <h3>Date Selection</h3>' + '</div>' + '<div id="modal-body-dates" class="modal-body">' +
+        '        </div>' + '<div id="modal-footer-dates" class="modal-footer">' +
+        '       <a class="btn btn-primary vis_update">Update Visualization</a>' + '</div>');
 
     // add modal div for params
-    tool_container.append("div").attr("id", "modal-params").attr("class", "modal hide fade").html('<div class="modal-header">' + '        <button class="close" data-dismiss="modal">×</button>' + '        <h3>Parameter Selection</h3>' + '        </div>' + '<div id="modal-body-params" class="modal-body">' + '        <p>Select Stations and Parameters.</p>' + '        </div>' + '<div id="modal-footer-params" class="modal-footer">' + '       <a class="btn btn-primary vis_update">Update Visualization</a>' + '</div>');
+    tool_container.append("div")
+        .attr("id", "modal-params")
+        .attr("class", "modal hide fade").html('<div class="modal-header">' +
+        '        <button class="close" data-dismiss="modal">×</button>' +
+        '        <h3>Parameter Selection</h3>' +
+        '        </div>' + '<div id="modal-body-params" class="modal-body">' +
+        '        <p>Select Stations and Parameters.</p>' +
+        '        </div>' + '<div id="modal-footer-params" class="modal-footer">' +
+        '       <a class="btn btn-primary vis_update">Update Visualization</a>' + '</div>');
 
     // add the dom elements
-    this.svg = tool_container.append("svg").attr("id", "svg_main").attr("width", self.chart.layout.container.width + self.chart.layout.container.margin.left + self.chart.layout.container.margin.right).attr("height", self.chart.layout.container.height + self.chart.layout.container.margin.top + self.chart.layout.container.margin.bottom);
+    this.svg = tool_container.append("svg")
+        .attr("id", "svg_main")
+        .attr("width", self.chart.layout.container.width + self.chart.layout.container.margin.left + self.chart.layout.container.margin.right)
+        .attr("height", self.chart.layout.container.height + self.chart.layout.container.margin.top + self.chart.layout.container.margin.bottom);
 
-    this.svg.append("defs").append("clipPath").attr("id", "clip").append("rect").attr("width", self.chart.layout.focus.width).attr("height", self.chart.layout.focus.height);
+    this.svg.append("defs")
+        .append("clipPath").attr("id", "clip")
+        .append("rect").attr("width", self.chart.layout.focus.width)
+        .attr("height", self.chart.layout.focus.height);
 
-    this.d_legend = this.svg.append("g").attr("id", "legend").attr("transform", "translate(" + self.chart.layout.legend.margin.left + "," + self.chart.layout.legend.margin.top + ")");
+    this.d_legend = this.svg.append("g")
+        .attr("id", "legend")
+        .attr("transform", "translate(" + self.chart.layout.legend.margin.left + "," + self.chart.layout.legend.margin.top + ")");
 
-    this.d_legend_station1 = this.d_legend.append("g").attr("class", "legend").attr("fill", "#FFF").on("click", function (d) {
-        self.station_toggle(this, "station1")
-    });
+    this.d_legend_station1 = this.d_legend.append("g")
+        .attr("class", "legend")
+        .attr("fill", "#FFF").on("click", function (d) {
+            self.station_toggle(this, "station1")
+        });
     //   .on("mouseover",function(d){alert("add highlight?")})
-    this.d_legend_station1.append("svg:circle").attr("id", "legend-station1-circle").attr("class", "legend_station").style("stroke", "red").style("fill", "red").attr("cx", "100").attr("cy", "0").attr("r", "6")
+    this.d_legend_station1.append("svg:circle")
+        .attr("id", "legend-station1-circle")
+        .attr("class", "legend_station")
+        .style("stroke", "red")
+        .style("fill", "red")
+        .attr("cx", "100")
+        .attr("cy", "0")
+        .attr("r", "6")
 
-    this.d_legend_station1.append("g").append("svg:text").attr("id", "legend-station1-text").style("fill", "#000").text(self.stations[self.tool.configuration.custom.station1].name).attr("x", "115").attr("y", "2")
+    this.d_legend_station1.append("g").append("svg:text")
+        .attr("id", "legend-station1-text")
+        .style("fill", "#000")
+        .text(self.stations[self.tool.configuration.custom.station1].name)
+        .attr("x", "115")
+        .attr("y", "2")
 
-    this.d_legend_station2 = this.d_legend.append("g").attr("class", "legend").attr("fill", "#FFF").on("click", function (d) {
-        self.station_toggle(this, "station2")
-    })
+    this.d_legend_station2 = this.d_legend.append("g")
+        .attr("class", "legend")
+        .attr("fill", "#FFF").on("click", function (d) {
+            self.station_toggle(this, "station2")
+        })
 
-    this.d_legend_station2.append("svg:circle").attr("id", "legend-station2-circle").attr("class", "legend_station").style("stroke", "steelblue").style("fill", "steelblue").attr("cx", "300").attr("cy", "0").attr("r", "6")
+    this.d_legend_station2.append("svg:circle")
+        .attr("id", "legend-station2-circle")
+        .attr("class", "legend_station")
+        .style("stroke", "steelblue")
+        .style("fill", "steelblue")
+        .attr("cx", "300")
+        .attr("cy", "0")
+        .attr("r", "6")
 
-    this.d_legend_station2.append("g").append("svg:text").attr("id", "legend-station2-text").attr("fill", "#000").text(self.stations[self.tool.configuration.custom.station2].name).attr("x", "315").attr("y", "2")
+    this.d_legend_station2.append("g").append("svg:text")
+        .attr("id", "legend-station2-text")
+        .attr("fill", "#000")
+        .text(self.stations[self.tool.configuration.custom.station2].name)
+        .attr("x", "315")
+        .attr("y", "2")
 
 
     // Y AXIS LABELS
-    this.d_label_y_left = this.svg.append("g").attr("id", "label-y-left").attr("transform", " translate(10," + (self.chart.layout.container.height / 2) + ") rotate(-90 0 0) ");
+    this.d_label_y_left = this.svg.append("g")
+        .attr("id", "label-y-left")
+        .attr("transform", " translate(10," + (self.chart.layout.container.height / 2) + ") rotate(-90 0 0) ");
 
-    this.d_label_y_left.append("svg:text").attr("id", "label-y-left-text").attr("fill", "red").attr("x", "0").attr("y", "4").text(self.parameters[self.tool.configuration.custom.param1].label);
+    this.d_label_y_left.append("svg:text")
+        .attr("id", "label-y-left-text")
+        .attr("fill", "red")
+        .attr("x", "0")
+        .attr("y", "4")
+        .text(self.parameters[configCustom.param1].label);
 
-    this.d_label_y_right = this.svg.append("g").attr("id", "label-y-right").attr("transform", " translate(" + (+(self.chart.layout.container.width) - 20) + "," + (self.chart.layout.container.height / 2) + ") rotate(-90 0 0) ");
+    this.d_label_y_right = this.svg.append("g")
+        .attr("id", "label-y-right")
+        .attr("transform", " translate(" + (+(self.chart.layout.container.width) - 20) + "," + (self.chart.layout.container.height / 2) + ") rotate(-90 0 0) ");
 
-    this.d_label_y_right.append("svg:text").attr("id", "label-y-right-text").attr("fill", "steelblue").attr("x", "0").attr("y", "4").text(self.parameters[self.tool.configuration.custom.param2].label);
+    this.d_label_y_right.append("svg:text")
+        .attr("id", "label-y-right-text")
+        .attr("fill", "steelblue")
+        .attr("x", "0")
+        .attr("y", "4")
+        .text(self.parameters[configCustom.param2].label);
 
-    this.d_context = this.svg.append("g").attr("id", "context-g").attr("transform", "translate(" + self.chart.layout.context.margin.left + "," + self.chart.layout.context.margin.top + ")")
+    this.d_context = this.svg.append("g")
+        .attr("id", "context-g")
+        .attr("transform", "translate(" + self.chart.layout.context.margin.left + "," + self.chart.layout.context.margin.top + ")")
 
-    this.d_context.append("line").attr("x1", "0").attr("y1", "-7").attr("x2", "0").attr("y2", self.chart.layout.context.height).attr("stroke", "#000").attr("stroke-width", "1").attr("shape-rendering", "crispEdges");
+    this.d_context.append("line")
+        .attr("x1", "0")
+        .attr("y1", "-7")
+        .attr("x2", "0")
+        .attr("y2", self.chart.layout.context.height)
+        .attr("stroke", "#000")
+        .attr("stroke-width", "1")
+        .attr("shape-rendering", "crispEdges");
 
-    this.d_focus = this.svg.append("g").attr("id", "focus-g").attr("transform", "translate(" + self.chart.layout.focus.margin.left + "," + self.chart.layout.focus.margin.top + ")");
+    this.d_focus = this.svg.append("g")
+        .attr("id", "focus-g")
+        .attr("transform", "translate(" + self.chart.layout.focus.margin.left + "," + self.chart.layout.focus.margin.top + ")");
 
-    tool_container.append("div").attr("id", "controls-div").style("width", self.chart.layout.container.width + "px")
+    tool_container.append("div")
+        .attr("id", "controls-div")
+        .style("width", self.chart.layout.container.width + "px")
 
-    var queryString_p1 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config.station1 + '&observedproperty=' + config.param1 + '&responseformat=text/csv' + '&eventtime=' + config.date_start + 'T00:00Z/' + config.date_end + 'T00:00Z';
+    var url1 = self.sos.requestUrlTimeseriesDate(
+        configCustom.station1,
+        configCustom.param1,
+        {
+            dateStart:configCustom.date_start,
+            dateEnd:configCustom.date_end
+        }
+    );
 
-    var queryString_p2 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config.station2 + '&observedproperty=' + config.param2 + '&responseformat=text/csv' + '&eventtime=' + config.date_start + 'T00:00Z/' + config.date_end + 'T00:00Z';
+    var url2 = self.sos.requestUrlTimeseriesDate(
+        configCustom.station2,
+        configCustom.param2,
+        {
+            dateStart:configCustom.date_start,
+            dateEnd:configCustom.date_end
+        }
+    );
 
-    //    console.log(".... Query Strings ....")
-    //    console.log(queryString_p1);
-    //    console.log(queryString_p2);
-    d3.csv(queryString_p1, function (data, param) {
+    d3.csv(url1, function (data, param) {
 
         // dataset length!
 
@@ -456,11 +486,11 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         } else {
 
             //reference to param1 column
-            var colY = self.parameters[config.param1].column,
-                units = self.parameters[config.param1].units;
+            var colY = self.parameters[configCustom.param1].column,
+                units = self.parameters[configCustom.param1].units;
 
             data.forEach(function (d) {
-                d["date_time"] = self.dateFormats.data_source.parse(d.date_time);
+                d["date_time"] = self.evtool.getFormatDate("data_source").parse(d.date_time);
                 d[colY] = +d[colY];
             });
 
@@ -475,7 +505,7 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
     });
 
-    d3.csv(queryString_p2, function (data, param) {
+    d3.csv(url2, function (data, param) {
 
         if (data.length == 0) {
 
@@ -483,11 +513,11 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
         } else {
 
-            var colY = self.parameters[config.param2].column,
-                units = self.parameters[config.param2].units;
+            var colY = self.parameters[configCustom.param2].column,
+                units = self.parameters[configCustom.param2].units;
 
             data.forEach(function (d) {
-                d["date_time"] = self.dateFormats.data_source.parse(d.date_time);
+                d["date_time"] = self.evtool.getFormatDate("data_source").parse(d.date_time);
                 d[colY] = +d[colY];
             });
 
@@ -505,8 +535,8 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
     //TODO: body will be replaced controls div id
     var ctrl_dates_btn = $("<a></a>").attr({
-            id: "btn_dates"
-        })
+        id: "btn_dates"
+    })
         .addClass("btn btn-primary")
         .css("margin-right", "20px")
         .attr("data-toggle", "modal")
@@ -525,73 +555,76 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         "align": "center"
     }).append(ctrl_dates_btn).append(ctrl_datasets_btn).appendTo("#controls-div");
 
-    var ctrl_date_start = self.tool_control("ctrl-datepicker-date-start", {
+    var ctrl_date_start = self.evtool.toolControl(self,"ctrl-datepicker-date-start", {
         "type": "datepicker",
         "label": "Start Date",
         "tooltip": "",
         "description": "Enter or select the Time Series Start Date (yyyy-mm-dd)",
-        "default_value": self.tool.configuration.custom.date_start,
+        "default_value": configCustom.date_start,
         "validation": {
             "type": "datetime",
             "format": "yyyy-mm-dd"
         }
     });
 
-    var ctrl_date_end = self.tool_control("ctrl-datepicker-date-end", {
+    var ctrl_date_end = self.evtool.toolControl(self,"ctrl-datepicker-date-end", {
         "type": "datepicker",
         "label": "End Date",
         "tooltip": "",
         "description": "Enter or select the Time Series End Date (yyyy-mm-dd)",
-        "default_value": self.tool.configuration.custom.date_end,
+        "default_value": configCustom.date_end,
         "validation": {
             "type": "datetime",
             "format": "yyyy-mm-dd"
         }
     });
 
-    var ctrl_window_dates = $("<div></div>").append(ctrl_date_start).append(ctrl_date_end).appendTo("#modal-body-dates");
+    var ctrl_window_dates = $("<div></div>")
+        .append(ctrl_date_start)
+        .append(ctrl_date_end)
+        .appendTo("#modal-body-dates");
 
-    var ctrl_dd_station1 = self.tool_control("ctrl-dataset-dropdown-station1",
-
-        {
-            "type": "dropdown",
-            "label": "Station",
-            "tooltip": "Select a Buoy from the options provided.",
-            "description": "Select a Buoy",
-            "default_value": self.tool.configuration.custom.station1,
-            "options": dd_options_stations()
-        });
-
-    var ctrl_dd_station2 = self.tool_control("ctrl-dataset-dropdown-station2",
+    var ctrl_dd_station1 = self.evtool.toolControl(self,"ctrl-dataset-dropdown-station1",
 
         {
             "type": "dropdown",
             "label": "Station",
             "tooltip": "Select a Buoy from the options provided.",
             "description": "Select a Buoy",
-            "default_value": self.tool.configuration.custom.station2,
+            "default_value": configCustom.station1,
             "options": dd_options_stations()
         });
 
-    var ctrl_dd_param1 = self.tool_control("ctrl-dataset-dropdown-param1",
+    var ctrl_dd_station2 = self.evtool.toolControl(self,"ctrl-dataset-dropdown-station2",
+
+        {
+            "type": "dropdown",
+            "label": "Station",
+            "tooltip": "Select a Buoy from the options provided.",
+            "description": "Select a Buoy",
+            "default_value": configCustom.station2,
+            "options": dd_options_stations()
+        });
+
+    var ctrl_dd_param1 = self.evtool.toolControl(self,"ctrl-dataset-dropdown-param1",
 
         {
             "type": "dropdown",
             "label": "Parameter",
             "tooltip": "Select a Parameter from the options provided.",
             "description": "Select a Parameter",
-            "default_value": self.tool.configuration.custom.param1,
+            "default_value": configCustom.param1,
             "options": dd_options_parameters()
         });
 
-    var ctrl_dd_param2 = self.tool_control("ctrl-dataset-dropdown-param2",
+    var ctrl_dd_param2 = self.evtool.toolControl(self,"ctrl-dataset-dropdown-param2",
 
         {
             "type": "dropdown",
             "label": "Parameter",
             "tooltip": "Select a Parameter from the options provided.",
             "description": "Select a Parameter",
-            "default_value": self.tool.configuration.custom.param2,
+            "default_value": configCustom.param2,
             "options": dd_options_parameters(),
             "nolabel": true
         });
@@ -604,15 +637,15 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
             })
             .append($(ctrl_dd_station1))
             .append($(ctrl_dd_param1)))
-            .append(
-                $('<div class="row-fluid"></div>')
-                    .attr({
-                        id: "param2"
-                    })
-                .append($(ctrl_dd_station2))
-                .append($(ctrl_dd_param2))
-            )
-            .appendTo("#modal-body-params");
+        .append(
+        $('<div class="row-fluid"></div>')
+            .attr({
+                id: "param2"
+            })
+            .append($(ctrl_dd_station2))
+            .append($(ctrl_dd_param2))
+    )
+        .appendTo("#modal-body-params");
 
     // add click events for visualization update buttons
     $('.vis_update').on('click', function (a) {
@@ -658,10 +691,10 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         // --> https://github.com/mbostock/d3/wiki/Time-Scales
         // Date Ticks --> http://bl.ocks.org/1071269
         //var config_custom = self.chart.timeseries.config.custom;
-        var config_custom = self.tool.configuration.custom;
+        var configCustom = self.tool.configuration.custom;
 
-        var colY1 = self.parameters[config_custom.param1].column,
-            colY2 = self.parameters[config_custom.param2].column;
+        var colY1 = self.parameters[configCustom.param1].column,
+            colY2 = self.parameters[configCustom.param2].column;
 
         // set domain from context brush
         self.chart.focus["param1"].x.domain(self.chart.brush.empty() ? self.chart.context["param1"].x.domain() : self.chart.brush.extent());
@@ -672,16 +705,23 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         self.d_focus.select("#path-focus-param2").attr("d", self.chart.focus["param2"].path);
 
         // update all circle positions for param1
-        var brush1_update = d3.select(".datapoints-param1").selectAll("path").data(self.chart.timeseries.datasets["param1"].data).attr("transform", function (d) {
-            return "translate(" + self.chart.focus["param1"].x(d.date_time) + "," + self.chart.focus["param1"].y(d[colY1]) + ")";
-        }).attr("d", d3.svg.symbol().type("circle"))
+        var brush1_update = d3.select(".datapoints-param1")
+            .selectAll("path").data(self.chart.timeseries.datasets["param1"].data)
+            .attr("transform", function (d) {
+                return "translate(" + self.chart.focus["param1"].x(d.date_time) + "," + self.chart.focus["param1"].y(d[colY1]) + ")";
+            })
+            .attr("d", d3.svg.symbol().type("circle"))
 
-        var brush2_update = d3.select(".datapoints-param2").selectAll("path").data(self.chart.timeseries.datasets["param2"].data).attr("transform", function (d) {
-            return "translate(" + self.chart.focus["param2"].x(d.date_time) + "," + self.chart.focus["param2"].y(d[colY2]) + ")";
-        }).attr("d", d3.svg.symbol().type("triangle-up"))
+        var brush2_update = d3.select(".datapoints-param2")
+            .selectAll("path").data(self.chart.timeseries.datasets["param2"].data)
+            .attr("transform", function (d) {
+                return "translate(" + self.chart.focus["param2"].x(d.date_time) + "," + self.chart.focus["param2"].y(d[colY2]) + ")";
+            })
+            .attr("d", d3.svg.symbol().type("triangle-up"))
 
         // update the focus axis based on area brushed
-        self.d_focus.selectAll(".x.axis").call(self.chart.focus.axis["param1"].x);
+        self.d_focus.selectAll(".x.axis")
+            .call(self.chart.focus.axis["param1"].x);
 
     }
 }
@@ -692,7 +732,7 @@ EV2_Time_Series_Explorer.prototype.chart_datasets_update = function () {
 
     var self = this;
 
-    var config_custom = self.tool.configuration.custom,
+    var configCustom = self.tool.configuration.custom,
         ds1 = self.chart.timeseries.datasets["param1"],
         ds2 = self.chart.timeseries.datasets["param2"];
 
@@ -705,19 +745,29 @@ EV2_Time_Series_Explorer.prototype.chart_datasets_update = function () {
 
     // we can compare the configs to determine what kind of updates are necessary
 
-    // define query strings
-    var queryString_param1 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config_custom.station1 + '&observedproperty=' + config_custom.param1 + '&responseformat=text/csv' + '&eventtime=' + config_custom.date_start + 'T00:00Z/' + config_custom.date_end + 'T00:00Z';
+    var url1 = self.sos.requestUrlTimeseriesDate(
+        configCustom.station1,
+        configCustom.param1,
+        {
+            dateStart:configCustom.date_start,
+            dateEnd:configCustom.date_end
+        }
+    );
 
-    var queryString_param2 = 'http://epe.marine.rutgers.edu/visualization/proxy_ndbc.php?' + 'http://sdf.ndbc.noaa.gov/sos/server.php?request=GetObservation&service=SOS&offering=urn:ioos:station:wmo:' + config_custom.station2 + '&observedproperty=' + config_custom.param2 + '&responseformat=text/csv' + '&eventtime=' + config_custom.date_start + 'T00:00Z/' + config_custom.date_end + 'T00:00Z';
+    var url2 = self.sos.requestUrlTimeseriesDate(
+        configCustom.station2,
+        configCustom.param2,
+        {
+            dateStart:configCustom.date_start,
+            dateEnd:configCustom.date_end
+        }
+    );
 
-    //    console.log(".... Query Strings ....")
-    //    console.log(queryString_param1);
-    //    console.log(queryString_param2);
     ds1.isDrawReady = false;
     ds2.isDrawReady = false;
 
     // now make the date updates if they have changed.
-    d3.csv(queryString_param1, function (data, param) {
+    d3.csv(url1, function (data, param) {
 
         if (data.length == 0) {
 
@@ -725,11 +775,11 @@ EV2_Time_Series_Explorer.prototype.chart_datasets_update = function () {
 
         } else {
 
-            var colY = self.parameters[config_custom.param1].column,
-                units = self.parameters[config_custom.param1].units;
+            var colY = self.parameters[self.tool.configuration.custom.param1].column,
+                units = self.parameters[self.tool.configuration.custom.param1].units;
 
             data.forEach(function (d) {
-                d["date_time"] = self.dateFormats.data_source.parse(d.date_time);
+                d["date_time"] = self.evtool.getFormatDate("data_source").parse(d.date_time);
                 d[colY] = +d[colY];
             });
 
@@ -749,18 +799,18 @@ EV2_Time_Series_Explorer.prototype.chart_datasets_update = function () {
         }
     });
 
-    d3.csv(queryString_param2, function (data, param) {
+    d3.csv(url2, function (data, param) {
 
         if (data.length == 0) {
             self.notify_nodata(param);
 
         } else {
 
-            var colY = self.parameters[config_custom.param2].column,
-                units = self.parameters[config_custom.param2].units;
+            var colY = self.parameters[configCustom.param2].column,
+                units = self.parameters[configCustom.param2].units;
 
             data.forEach(function (d) {
-                d["date_time"] = self.dateFormats.data_source.parse(d.date_time);
+                d["date_time"] = self.evtool.getFormatDate("data_source").parse(d.date_time);
                 d[colY] = +d[colY];
             });
 
@@ -986,18 +1036,41 @@ EV2_Time_Series_Explorer.prototype.add_data = function (param) {
         context_axis = self.chart.context.axis[param];
 
     // append the path for the current parameter
-    self.d_focus.append("path").data([data]).attr("id", "path-focus-" + param).style("stroke", (param == "param1") ? "red" : "steelblue").style("stroke-width", "4px").attr("class", "path-focus").attr("clip-path", "url(#clip)").attr("d", focus.path);
+    self.d_focus.append("path")
+        .data([data])
+        .attr("id", "path-focus-" + param)
+        .style("stroke", (param == "param1") ? "red" : "steelblue")
+        .style("stroke-width", "4px")
+        .attr("class", "path-focus")
+        .attr("clip-path", "url(#clip)")
+        .attr("d", focus.path);
 
     // append the context path for the current parameter
-    self.d_context.append("path").attr("id", "path-context-" + param).attr("class", "path-context").style("stroke", (param == "param1") ? "red" : "steelblue").data([data]).attr("d", context.path);
+    self.d_context.append("path")
+        .attr("id", "path-context-" + param)
+        .attr("class", "path-context")
+        .style("stroke", (param == "param1") ? "red" : "steelblue")
+        .data([data]).attr("d", context.path);
 
 
-    self.d_focus.append("svg:g").attr("class", "datapoints-" + param).attr("clip-path", "url(#clip)").selectAll("path").data(data).enter().append("path").attr("class", "dp-" + (param == "param1") ? "circle" : "triangle").attr("fill", (param == "param1") ? "red" : "steelblue").attr("transform", function (d) {
-        return "translate(" + focus.x(d.date_time) + "," + focus.y(d[colY]) + ")";
-    }).attr("d", d3.svg.symbol().type((param == "param1") ? "circle" : "triangle-up")).on("mouseover", function (d) {
-            return self.chart.tooltip.style("visibility", "visible").html(self.dateFormats.tooltip(d["date_time"]) + " - <b>" + d[colY] + " " + units + "</b>")
+    self.d_focus.append("svg:g")
+        .attr("class", "datapoints-" + param)
+        .attr("clip-path", "url(#clip)")
+        .selectAll("path").data(data)
+        .enter()
+        .append("path")
+        .attr("class", "dp-" + (param == "param1") ? "circle" : "triangle")
+        .attr("fill", (param == "param1") ? "red" : "steelblue")
+        .attr("transform", function (d) {
+            return "translate(" + focus.x(d.date_time) + "," + focus.y(d[colY]) + ")";
+        })
+        .attr("d", d3.svg.symbol().type((param == "param1") ? "circle" : "triangle-up"))
+        .on("mouseover", function (d) {
+            return self.chart.tooltip.style("visibility", "visible")
+                .html(self.evtool.getFormatDate("tooltip")(d["date_time"]) + " - <b>" + d[colY] + " " + units + "</b>")
         }).on("mousemove", function () {
-            return self.chart.tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+            return self.chart.tooltip.style("top", (d3.event.pageY - 10) + "px")
+                .style("left", (d3.event.pageX + 10) + "px");
         }).on("mouseout", function () {
             return self.chart.tooltip.style("visibility", "hidden");
         });
@@ -1135,7 +1208,6 @@ EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
             .call(focus_axis.x);
     }
 
-
     var datapoints_update = d3.select(".datapoints-" + param)
         .selectAll("path")
         .data(data);
@@ -1147,7 +1219,6 @@ EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
         })
         .attr("d", d3.svg.symbol().type((param == "param1") ? "circle" : "triangle-up"))
 
-
     datapoints_update
         .enter()
         .append("path")
@@ -1158,23 +1229,25 @@ EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
         })
         .attr("d", d3.svg.symbol().type((param == "param1") ? "circle" : "triangle-up"))
 
-
-    datapoints_update.exit().remove();
+    datapoints_update.exit()
+        .remove();
 
     // add mouseovers to all paths
     d3.select(".datapoints-" + param).selectAll("path")
         .data(data)
         .on("mouseover", function (d) {
-            return self.chart.tooltip.style("visibility", "visible").html(self.dateFormats.tooltip(d["date_time"]) + " - <b>" + d[colY] + " " + units + "</b>")
+            return self.chart.tooltip.style("visibility", "visible")
+                .html(self.evtool.getFormatDate("tooltip")(d["date_time"]) + " - <b>" + d[colY] + " " + units + "</b>")
         })
         .on("mousemove", function () {
-            return self.chart.tooltip.style("top", (d3.event.pageY - 10) + "px").style("left", (d3.event.pageX + 10) + "px");
+            return self.chart.tooltip.style("top", (d3.event.pageY - 10) + "px")
+                .style("left", (d3.event.pageX + 10) + "px");
         }).on("mouseout", function () {
-            return self.chart.tooltip.style("visibility", "hidden");
+            return self.chart.tooltip
+                .style("visibility", "hidden");
         });
 
 }
-
 
 EV2_Time_Series_Explorer.prototype.customization_update = function () {
     // this function will update the config file which is used for subsequent calls and lookups
@@ -1190,13 +1263,8 @@ EV2_Time_Series_Explorer.prototype.customization_update = function () {
     config.station1 = $("#ctrl-dataset-dropdown-station1").val();
     config.station2 =  $("#ctrl-dataset-dropdown-station2").val();
 
-    //    console.log("date_start: " + $('#ctrl-datepicker-date-start').val());
-    //    console.log("date_end: " + $('#ctrl-datepicker-date-end').val());
-    //    console.log("station1: " + $("#ctrl-dataset-dropdown-station1").val());
-    //    console.log("station2: " + $("#ctrl-dataset-dropdown-station2").val());
-    //    console.log("param1: " + $("#ctrl-dataset-dropdown-param1").val());
-    //    console.log("param2: " + $("#ctrl-dataset-dropdown-param2").val());
-    //    console.log(self.chart.timeseries.config.custom);
+    //todo: should only update the current parameter, not all
+
 }
 
 EV2_Time_Series_Explorer.prototype.station_toggle = function (element, station) {
@@ -1235,24 +1303,36 @@ EV2_Time_Series_Explorer.prototype.station_toggle = function (element, station) 
         if (self.chart.timeseries.datasets.param2.visible == true) {
             self.chart.timeseries.datasets.param2.visible = false;
 
-            d3.select("#legend-station2-circle").style("fill", "#FFFFFF");
+            d3.select("#legend-station2-circle")
+                .style("fill", "#FFFFFF");
 
-            d3.select("#path-focus-param2").style("visibility", "hidden")
+            d3.select("#path-focus-param2")
+                .style("visibility", "hidden")
 
-            d3.select(".datapoints-param2").selectAll("path").style("visibility", "hidden");
+            d3.select(".datapoints-param2")
+                .selectAll("path")
+                .style("visibility", "hidden");
+
         } else {
+
             self.chart.timeseries.datasets.param2.visible = true;
-            d3.select("#legend-station2-circle").style("fill", "steelblue");
 
-            d3.select("#path-focus-param2").style("visibility", "visible")
+            d3.select("#legend-station2-circle")
+                .style("fill", "steelblue");
 
-            d3.select(".datapoints-param2").selectAll("path").style("visibility", "visible");
+            d3.select("#path-focus-param2")
+                .style("visibility", "visible")
+
+            d3.select(".datapoints-param2")
+                .selectAll("path").style("visibility", "visible");
         }
     }
 
 }
 
 EV2_Time_Series_Explorer.prototype.notify_nodata = function (param) {
+
+    //todo: ioosSOS general notification / routine for dealing with empty datasets
 
     var self = this;
     var config_custom = self.tool.configuration.custom;
@@ -1267,188 +1347,193 @@ EV2_Time_Series_Explorer.prototype.notify_nodata = function (param) {
     //                    "Please adjust the Station, Parameters, or Date Range to request new data."
     //    );
 }
-
-EV2_Time_Series_Explorer.prototype.tool_control = function (id, control) {
-
-    var self = this;
-
-    //    console.log("ID: " + id + "  Control Type: " + control.type);
-    var ctrl;
-    switch (control.type) {
-        case "textbox":
-
-            var lbl = $("<label />").attr({
-                'for': id
-            }) //'title':control.tooltip
-                .html(control.description);
-
-            var input = document.createElement("input");
-            $(input).attr({
-                'id': id,
-                'type': 'textbox',
-                'value': control.default_value,
-                'title': control.tooltip,
-                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
-            }).addClass("span2").on("change", function () {
-                    self.customization_update();
-                });
-
-            ctrl = $("<div></div>").addClass("control").append(lbl).append(input);
-
-            break;
-
-        case "dropdown":
-
-
-            var lbl = $("<label />").attr({
-                'for': id,
-                'title': control.tooltip
-            }).html(control.description);
-
-            // create select element and populate it
-            var select = $("<select></select>")
-                //.addClass("span3")
-                .attr({
-                    "id": id
-                }).change(function () {
-                    self.customization_update();
-                });
-
-            $.each(control.options, function (option) {
-                opt = control.options[option];
-                $(select).append($('<option></option>').val(opt.value).html(opt.name));
-            });
-
-            select.val(control.default_value);
-
-            ctrl = $('<div style="display:inline"></div>').addClass("control");
-
-            if (!control.nolabel === "true") ctrl.append(lbl);
-
-            ctrl.append(select);
-
-            break;
-
-        case "checkbox":
-
-            var lbl = $("<label />").attr({
-                'for': id,
-                'title': control.tooltip
-            }).html(control.description);
-
-            var input = document.createElement("input");
-            $(input).attr({
-                'id': id,
-                'type': 'checkbox',
-                //'value':control.default_value,
-                'title': control.tooltip,
-                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
-                //'onclick':function(){alert("test");}
-            });
-            if (control.selected) $(input).attr({
-                'checked': 'checked'
-            })
-
-            ctrl = $("<div></div>").addClass("control").append(lbl).append(input);
-
-            break;
-
-        case "svg":
-
-            var ctrl = document.createElement("svg");
-
-            break;
-
-        case "datepicker":
-
-
-            var el_lbl = $("<label />").attr({
-                'for': id + "_dp",
-                'title': control.tooltip
-            }).html(control.description);
-
-            var el_input = $("<input />").attr({
-                "id": id,
-                "type": "text"
-            })
-                .addClass("datepicker").val(control.default_value).on("change", function () {
-                    self.customization_update();
-                });
-
-            $(el_input).datepicker({
-                "dateFormat": "yy-mm-dd",
-                changeMonth: true,
-                changeYear: true,
-                showButtonPanel: true
-            }).on("changeDate", function (dp) {
-                    self.customization_update();
-                });
-
-            ctrl = $("<div></div>").addClass("control ctlhandle").append(el_lbl).append(el_input);
-
-            break;
-
-        case "colorpicker":
-
-            // recursive function to call text box and apply color picker on top of it
-            //control.type="textbox";
-
-            //ctrl = self.draw_control(id,control);
-            //ctrl = self.draw_control(id+"_cp",control);
-
-            // find the textbox in the control and init colorpicker
-            var el_lbl = $("<label />").attr({
-                'for': id + "_cp",
-                'title': control.tooltip
-            }).html(control.description);
-
-            var el_input = $("<input />").attr({
-                "id": id,
-                "type": "text"
-            }).addClass("readonly span2").val(control.default_value);
-
-            var el_i = $("<i></i>").css("background-color", control.default_value);
-            var el_span = $("<span></span>").addClass("add-on").append(el_i);
-
-            var el_div = $("<div></div>").addClass("input-append color").attr({
-                "id": id + "_cp",
-                "data-color": control.default_value,
-                "data-color-format": "hex"
-            }).append(el_input).append(el_span)
-
-            $(el_div).colorpicker().on("changeColor", function (cp) {
-                $("#" + id).val(self.current_config[id] = cp.color.toHex())
-                //self.updateJSON();
-                self.customization_update();
-            });
-
-            ctrl = $("<div></div>").addClass("control ctlhandle").append(el_lbl).append(el_div);
-
-            break;
-
-        default:
-            ctrl = document.createElement("div");
-            break;
-
-        // recursive needs removed when converting bootstrap elements to components
-        //
-        // recursive function to call text box and apply date picker on top of it
-        // 		// change the control type to text box and create textbox control
-        // 		//control.type = "textbox";
-        // 		ctrl = self.draw_control(id,control);
-        // 		//ctrl = self.draw_control(id+"_dp",control);
-    }
-
-    if (control.popover) {
-        // now attach the popover to the div container for the control
-        $(ctrl).attr({
-            'rel': 'popover',
-            'title': control.label,
-            'data-content': control.tooltip
-        }).popover();
-
-    }
-
-    return ctrl;
-
-}
+//
+//EV2_Time_Series_Explorer.prototype.tool_control = function (id, control) {
+//
+//    var self = this;
+//
+//    //    console.log("ID: " + id + "  Control Type: " + control.type);
+//    var ctrl;
+//    switch (control.type) {
+//        case "textbox":
+//
+//            var lbl = $("<label />").attr({
+//                'for': id
+//            }) //'title':control.tooltip
+//                .html(control.description);
+//
+//            var input = document.createElement("input");
+//            $(input).attr({
+//                'id': id,
+//                'type': 'textbox',
+//                'value': control.default_value,
+//                'title': control.tooltip,
+//                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
+//            }).addClass("span2").on("change", function () {
+//                    self.customization_update();
+//                });
+//
+//            ctrl = $("<div></div>")
+//                .addClass("control")
+//                .append(lbl)
+//                .append(input);
+//
+//            break;
+//
+//        case "dropdown":
+//
+//
+//            var lbl = $("<label />").attr({
+//                'for': id,
+//                'title': control.tooltip
+//            }).html(control.description);
+//
+//            // create select element and populate it
+//            var select = $("<select></select>")
+//                //.addClass("span3")
+//                .attr({
+//                    "id": id
+//                }).change(function () {
+//                    self.customization_update();
+//                });
+//
+//            $.each(control.options, function (option) {
+//
+//                $(select).append($('<option></option>')
+//                    .val(control.options[option].value)
+//                    .html(control.options[option].name));
+//            });
+//
+//            select.val(control.default_value);
+//
+//            ctrl = $('<div style="display:inline"></div>').addClass("control");
+//
+//            if (!control.nolabel === "true") ctrl.append(lbl);
+//
+//            ctrl.append(select);
+//
+//            break;
+//
+//        case "checkbox":
+//
+//            var lbl = $("<label />").attr({
+//                'for': id,
+//                'title': control.tooltip
+//            }).html(control.description);
+//
+//            var input = document.createElement("input");
+//            $(input).attr({
+//                'id': id,
+//                'type': 'checkbox',
+//                //'value':control.default_value,
+//                'title': control.tooltip,
+//                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
+//                //'onclick':function(){alert("test");}
+//            });
+//            if (control.selected) $(input).attr({
+//                'checked': 'checked'
+//            })
+//
+//            ctrl = $("<div></div>").addClass("control").append(lbl).append(input);
+//
+//            break;
+//
+//        case "svg":
+//
+//            var ctrl = document.createElement("svg");
+//
+//            break;
+//
+//        case "datepicker":
+//
+//
+//            var el_lbl = $("<label />").attr({
+//                'for': id + "_dp",
+//                'title': control.tooltip
+//            }).html(control.description);
+//
+//            var el_input = $("<input />").attr({
+//                "id": id,
+//                "type": "text"
+//            })
+//                .addClass("datepicker").val(control.default_value).on("change", function () {
+//                    self.customization_update();
+//                });
+//
+//            $(el_input).datepicker({
+//                "dateFormat": "yy-mm-dd",
+//                changeMonth: true,
+//                changeYear: true,
+//                showButtonPanel: true
+//            }).on("changeDate", function (dp) {
+//                    self.customization_update();
+//                });
+//
+//            ctrl = $("<div></div>").addClass("control ctlhandle").append(el_lbl).append(el_input);
+//
+//            break;
+//
+//        case "colorpicker":
+//
+//            // recursive function to call text box and apply color picker on top of it
+//            //control.type="textbox";
+//
+//            //ctrl = self.draw_control(id,control);
+//            //ctrl = self.draw_control(id+"_cp",control);
+//
+//            // find the textbox in the control and init colorpicker
+//            var el_lbl = $("<label />").attr({
+//                'for': id + "_cp",
+//                'title': control.tooltip
+//            }).html(control.description);
+//
+//            var el_input = $("<input />").attr({
+//                "id": id,
+//                "type": "text"
+//            }).addClass("readonly span2").val(control.default_value);
+//
+//            var el_i = $("<i></i>").css("background-color", control.default_value);
+//            var el_span = $("<span></span>").addClass("add-on").append(el_i);
+//
+//            var el_div = $("<div></div>").addClass("input-append color").attr({
+//                "id": id + "_cp",
+//                "data-color": control.default_value,
+//                "data-color-format": "hex"
+//            }).append(el_input).append(el_span)
+//
+//            $(el_div).colorpicker().on("changeColor", function (cp) {
+//                $("#" + id).val(self.current_config[id] = cp.color.toHex())
+//                //self.updateJSON();
+//                self.customization_update();
+//            });
+//
+//            ctrl = $("<div></div>").addClass("control ctlhandle").append(el_lbl).append(el_div);
+//
+//            break;
+//
+//        default:
+//            ctrl = document.createElement("div");
+//            break;
+//
+//        // recursive needs removed when converting bootstrap elements to components
+//        //
+//        // recursive function to call text box and apply date picker on top of it
+//        // 		// change the control type to text box and create textbox control
+//        // 		//control.type = "textbox";
+//        // 		ctrl = self.draw_control(id,control);
+//        // 		//ctrl = self.draw_control(id+"_dp",control);
+//    }
+//
+//    if (control.popover) {
+//        // now attach the popover to the div container for the control
+//        $(ctrl).attr({
+//            'rel': 'popover',
+//            'title': control.label,
+//            'data-content': control.tooltip
+//        }).popover();
+//
+//    }
+//
+//    return ctrl;
+//
+//}

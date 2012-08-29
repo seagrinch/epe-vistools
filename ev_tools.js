@@ -4,26 +4,10 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 8/16/12
+// Revised 8/27/12
 
 
-
-// Combined tool list
-
-// x  IOOS Database requests
-// IOOS Data parsing - often tool specific, use new patter moving forward
-// data parsing - tool specific
-// min/max
-// avg, std. etc.
-
-// download data, parse data, run stats.. all with options
-
-
-
-var EVTool = function () {
-
-
-};
+var EVTool = function () {};
 
 EVTool.prototype.staticMonths = function ( ) {
 
@@ -77,21 +61,20 @@ EVTool.prototype.getFormatDateTicks = function ( dateTickFormatType) {
 //
 /**************************************************************************************/
 
-EVTool.prototype.configuration = function () {
-
-};
+EVTool.prototype.configuration = function () {};
 
 EVTool.prototype.configurationParse = function( configCustom, objConfigOverride ){
 
-    // should also test for empty object
-    console.log("objConfigOverride type is: ", typeof(objConfigOverride));
+    //unified tool configuration parsing.
+
+    //CONSOLE LOG//console.log("objConfigOverride type is: ", typeof(objConfigOverride));
 
     if(  typeof ( objConfigOverride ) == "undefined" ||  typeof ( objConfigOverride ) == "string" )  {
         console.log("no settings passed, default configuration loaded");
     }
     else{
         //override settings exist, so merge overrides into configuration
-        console.log("referenced configuration", configCustom)
+        //CONSOLE LOG//console.log("referenced configuration", configCustom)
         $.extend( true, configCustom, objConfigOverride );
     }
 };
@@ -103,15 +86,11 @@ EVTool.prototype.configurationParse = function( configCustom, objConfigOverride 
 /**************************************************************************************/
 
 EVTool.prototype.dataRequest = function () {
-
+    // there are currently multiple data request methods.. these will be combined here.
 };
-
 EVTool.prototype.dataParse = function () {
-
-
-}
-
-
+    // data parsing methods will be combined
+};
 
 /**************************************************************************************/
 //
@@ -121,7 +100,9 @@ EVTool.prototype.dataParse = function () {
 
 EVTool.prototype.domToolID = function ( domId ) {
 
-    // generate a tool ID if one was not passed
+    // generate a tool ID if one was not passed.
+    // this uses a 4 digit random number, but should be "smart"
+
     if ( typeof(domId) == "undefined" ){
         return "ev-" + ( Math.floor ( Math.random( ) * 9000 ) + 1000 ).toString() + "-";
     }
@@ -129,6 +110,7 @@ EVTool.prototype.domToolID = function ( domId ) {
         return domId;
     }
 }
+
 /**************************************************************************************/
 //
 //  D E P E N D E N C I E S
@@ -136,7 +118,7 @@ EVTool.prototype.domToolID = function ( domId ) {
 /**************************************************************************************/
 
 EVTool.prototype.loadDependencies = function () {
-
+    // tool dependencies should be added here.
 };
 
 EVTool.prototype.linearRegression = function( x ,y ){
@@ -158,7 +140,6 @@ EVTool.prototype.linearRegression = function( x ,y ){
     return lr;
 }
 
-
 /**************************************************************************************/
 //
 //  C O N T R O L   C R E A T I O N
@@ -169,26 +150,32 @@ EVTool.prototype.toolControl = function (tool, id, control) {
 
     // standarization of tool controls, including advanced tools ie. datepicker
 
+    // todo: editor,viewer should both reference this function
+
     var self = this;
 
     var ctrl;
     switch (control.type) {
+
         case "textbox":
 
-            var lbl = $("<label />").attr({
-                'for': id
-            }) //'title':control.tooltip
+            var lbl = $("<label />")
+                .attr({
+                    'for': id
+                })
                 .html(control.description);
 
-            var input = document.createElement("input");
-            $(input).attr({
-                'id': id,
-                'type': 'textbox',
-                'value': control.default_value,
-                'title': control.tooltip,
-                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
-            }).addClass("span2").on("change", function () {
-                    tool.customization_update();
+            var input = $("<input />")
+                .attr({
+                    'id': id,
+                    'type': 'textbox',
+                    'value': control.default_value,
+                    'title': control.tooltip,
+                    'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
+                })
+                //.addClass("span2")
+                .on("change", function () {
+                        tool.customization_update();
                 });
 
             ctrl = $("<div></div>")
@@ -198,13 +185,36 @@ EVTool.prototype.toolControl = function (tool, id, control) {
 
             break;
 
+        case "textarea":
+            var lbl = $("<label />")
+                .attr({'for':id})
+                .html(control.label);
+
+            var textarea = $("<textarea></textarea>")
+                .attr({
+                    'id':id,
+                    'type':'textarea',
+                    'value':control.default_value,
+                    //'title':control.tooltip,
+                    'rows':5
+                })
+                .change(function(){
+                    self.update_config()
+                });
+
+            ctrl = $("<div></div>").addClass("control").append(lbl).append(textarea);
+
+            break;
+
         case "dropdown":
 
 
-            var lbl = $("<label />").attr({
-                'for': id,
-                'title': control.tooltip
-            }).html(control.description);
+            var lbl = $("<label />")
+                .attr({
+                    'for': id,
+                    'title': control.tooltip
+                })
+                .html(control.description);
 
             // create select element and populate it
             var select = $("<select></select>")
@@ -215,16 +225,29 @@ EVTool.prototype.toolControl = function (tool, id, control) {
                     tool.customization_update();
                 });
 
+            // add drop down names and value pair options from contols "options" object
             $.each(control.options, function (option) {
+
                 opt = control.options[option];
-                $(select).append($('<option></option>').val(opt.value).html(opt.name));
+
+                $(select)
+                    .append($('<option></option>')
+                    .val(opt.value)
+                    .html(opt.name));
             });
 
-            select.val(control.default_value);
+            // set the default value based on the controls default value element
+            // todo: override with custom config value
+            select.val( control.default_value );
 
-            ctrl = $('<div style="display:inline"></div>').addClass("control");
+            //ctrl = $('<div style="display:inline"></div>')
 
-            if (!control.nolabel === "true") ctrl.append(lbl);
+            ctrl = $('<div></div>')
+                .addClass("control");
+
+            if (!control.nolabel === "true"){
+                ctrl.append(lbl);
+            }
 
             ctrl.append(select);
 
@@ -237,95 +260,115 @@ EVTool.prototype.toolControl = function (tool, id, control) {
                 'title': control.tooltip
             }).html(control.description);
 
-            var input = document.createElement("input");
-            $(input).attr({
-                'id': id,
-                'type': 'checkbox',
-                //'value':control.default_value,
-                'title': control.tooltip,
-                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
-                //'onclick':function(){alert("test");}
-            });
-            if (control.selected) $(input).attr({
-                'checked': 'checked'
-            })
+            var input = $("<input />")
+                .attr({
+                    'id': id,
+                    'type': 'checkbox',
+                    //'value':control.default_value,
+                    'title': control.tooltip,
+                    'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
+                    //'onclick':function(){alert("test");}
+                });
 
-            ctrl = $("<div></div>").addClass("control").append(lbl).append(input);
+            if ( control.selected ) {
+                $(input).attr({
+                    'checked': 'checked'
+                })
+            };
+
+            ctrl = $("<div></div>")
+                .addClass("control")
+                .append(lbl)
+                .append(input);
 
             break;
 
         case "svg":
 
-            var ctrl = document.createElement("svg");
+            var ctrl = $("<svg></svg>");
 
             break;
 
         case "datepicker":
 
-            var el_lbl = $("<label />").attr({
-                'for': id + "_dp",
-                'title': control.tooltip
-            }).html(control.description);
+            var el_lbl = $("<label />")
+                .attr({
+                    'for': id + "_dp",
+                    'title': control.tooltip
+                })
+                .html(control.description);
 
-            var el_input = $("<input />").attr({
-                "id": id,
-                "type": "text"
-            })
+            var el_input = $("<input />")
+                .attr({
+                    "id": id,
+                    "type": "text"
+                })
                 .addClass("datepicker")
                 .val(control.default_value)
                 .on("change", function () {
                     tool.customization_update();
                 });
 
+            // set jquery datepicker settings
             $(el_input).datepicker({
-                "dateFormat": "yy-mm-dd",
-                changeMonth: true,
-                changeYear: true,
-                showButtonPanel: true
-            }).on("changeDate", function (dp) {
+                    "dateFormat": "yy-mm-dd",
+                    changeMonth: true,
+                    changeYear: true,
+                    showButtonPanel: true
+                })
+                .on("changeDate", function (dp) {
                     tool.customization_update();
                 });
 
             ctrl = $("<div></div>")
                 .addClass("control ctlhandle")
-                .append(el_lbl).append(el_input);
+                .append(el_lbl)
+                .append(el_input);
 
             break;
 
         case "colorpicker":
 
-            // recursive function to call text box and apply color picker on top of it
-            //control.type="textbox";
-
-            //ctrl = self.draw_control(id,control);
-            //ctrl = self.draw_control(id+"_cp",control);
 
             // find the textbox in the control and init colorpicker
-            var el_lbl = $("<label />").attr({
-                'for': id + "_cp",
-                'title': control.tooltip
-            }).html(control.description);
+            var el_lbl = $("<label />")
+                .attr({
+                    'for': id + "_cp",
+                    'title': control.tooltip
+                })
+                .html(control.description);
 
-            var el_input = $("<input />").attr({
-                "id": id,
-                "type": "text"
-            }).addClass("readonly span2").val(control.default_value);
+            var el_input = $("<input />")
+                .attr({
+                    "id": id,
+                    "type": "text"
+                })
+                .addClass("readonly span2")
+                .val(control.default_value);
 
-            var el_i = $("<i></i>").css("background-color", control.default_value);
-            var el_span = $("<span></span>").addClass("add-on").append(el_i);
+            var el_i = $("<i></i>")
+                .css("background-color", control.default_value);
 
-            var el_div = $("<div></div>").addClass("input-append color").attr({
-                "id": id + "_cp",
-                "data-color": control.default_value,
-                "data-color-format": "hex"
-            }).append(el_input).append(el_span)
+            var el_span = $("<span></span>")
+                .addClass("add-on")
+                .append(el_i);
 
-            $(el_div).colorpicker().on("changeColor", function (cp) {
-                $("#" + id).val(cp.color.toHex())
-                //$("#" + id).val(tool.current_config[id] = cp.color.toHex())
-                //self.updateJSON();
-                tool.customization_update();
-            });
+            var el_div = $("<div></div>")
+                .addClass("input-append color")
+                .attr({
+                    "id": id + "_cp",
+                    "data-color": control.default_value,
+                    "data-color-format": "hex"
+                })
+                .append(el_input).append(el_span)
+
+            $(el_div).colorpicker()
+                .on("changeColor", function (cp) {
+                    $("#" + id).val(cp.color.toHex())
+                    //$("#" + id).val(tool.current_config[id] = cp.color.toHex())
+                    //self.updateJSON();
+                    tool.customization_update();
+                });
 
             ctrl = $("<div></div>")
                 .addClass("control ctlhandle")
@@ -336,27 +379,18 @@ EVTool.prototype.toolControl = function (tool, id, control) {
 
         case "slider":
 
-
+            //todo: slider control should be moved here from EV3/4
 
             break;
-
-
 
         default:
+            // empty div if nothing is passed
             ctrl = $("<div></div>");
             break;
-
-        // recursive needs removed when converting bootstrap elements to components
-        //
-        // recursive function to call text box and apply date picker on top of it
-        // 		// change the control type to text box and create textbox control
-        // 		//control.type = "textbox";
-        // 		ctrl = self.draw_control(id,control);
-        // 		//ctrl = self.draw_control(id+"_dp",control);
     }
 
     if (control.popover) {
-        // now attach the popover to the div container for the control, if applicable
+        // now attach the popover to the div container for the control if set
         $(ctrl).attr({
             'rel': 'popover',
             'title': control.label,
@@ -371,18 +405,17 @@ EVTool.prototype.toolControl = function (tool, id, control) {
 
 /**************************************************************************************/
 //
-//  N D B C   D A T A   R E Q U E S T S
+//  N D B C   I O O S   D A T A
 //
 /**************************************************************************************/
 
-var ioosSOS = function () {
 
-
-};
+var ioosSOS = function () {};
 
 ioosSOS.prototype.getObservationObj = function ( aryObservation ) {
 
     // get a minimum observations object as required by tool
+    // pass an array of observations and get object of observation and all properties
 
     var observations = {
 
@@ -438,9 +471,8 @@ ioosSOS.prototype.getObservationObj = function ( aryObservation ) {
 
     var self = this, toolObservations = {};
 
+    // add observations for on aryObservation elements
     $.each( aryObservation , function( index, observation ){
-
-        console.log("OOOBS", observation);
 
         toolObservations[observation] = observations[observation];
 
@@ -451,50 +483,50 @@ ioosSOS.prototype.getObservationObj = function ( aryObservation ) {
 };
 
 
-ioosSOS.prototype.request = function () {
-
-};
+ioosSOS.prototype.request = function () {};
 
 
 ioosSOS.prototype.requestUrlTimeseriesDate = function ( ndbcStation, observedProperty, eventTime ){
 
     /***
 
-     this function will generate a properly formatted IOOS SOS request for a timeseries
-     dataset for a specific bouy, observation, and date range
+         this function will generate a properly formatted IOOS SOS request for a timeseries
+         dataset for a specific bouy, observation, and date range
 
-     ndbcStation
-     - Acceptable Values: see http://sdf.ndbc.noaa.gov/stations.shtml
+         ndbcStation
+         - Acceptable Values: see http://sdf.ndbc.noaa.gov/stations.shtml
 
-     observedProperty
-     - air_pressure_at_sea_level
-     - air_temperature
-     - currents
-     - sea_water_salinity
-     - sea_water_electrical_conductivity
-     - sea_floor_depth_below_sea_surface (water level for tsunami stations)
-     - sea_water_temperature
-     - waves
-     - winds
+         observedProperty
+         - air_pressure_at_sea_level
+         - air_temperature
+         - currents
+         - sea_water_salinity
+         - sea_water_electrical_conductivity
+         - sea_floor_depth_below_sea_surface (water level for tsunami stations)
+         - sea_water_temperature
+         - waves
+         - winds
 
-     eventTime
-     - properly formatted eventTime --> 2010-01-01T00:00Z/2010-01-14T00:00Z
+         eventTime as string
+         - hours and minutes are acceptable
+         - properly formatted eventTime --> 2010-01-01T00:00Z/2010-01-14T00:00Z
 
-     todo: we could add checks to ensure the station, property and time are correct
+         eventTime as object
+         - eventTime.dateStart --> 2010-01-01
+         - eventTime.dateEnd   --> 2010-01-14
 
-     //'&eventtime=' + this.configuration.start_date + 'T00:00Z/'+ this.configuration.end_date + 'T00:00Z';
-     //eventTime = "eventtime=" + config.date_start + "T00:00Z/" + config.date_end+ "T00:00Z";
+         todo: we could add checks to ensure the station, property and time are correctly formatted
 
      **/
 
     var eventTimeFormatted;
 
     if( typeof(eventTime) == "object" ){
-        console.log("eventtime is object",eventTime);
+        //CONSOLE LOG//console.log("eventtime is object",eventTime);
         eventTimeFormatted = eventTime.dateStart +  "T00:00Z/" + eventTime.dateEnd + "T00:00Z";
     }
     else{
-        console.log("eventtime is string",eventTime);
+        //CONSOLE.LOG//console.log("eventtime is string",eventTime);
         eventTimeFormatted = eventTime;
     }
 
@@ -507,26 +539,21 @@ ioosSOS.prototype.requestUrlTimeseriesDate = function ( ndbcStation, observedPro
         + "&" + "responseformat=text/csv"
         + "&" + "eventtime=" + eventTimeFormatted;
 
-    console.log(url);
     return url;
 
 }
 
-ioosSOS.prototype.parseCSV = function ( ){
-
-
-};
-
 ioosSOS.prototype.stationListLB = function ( stationList ) {
 
+    // generate a station object from a text area delimited by line breaks
+
     // todo: remove leading and trailing line breaks before splitting.
+    //s = s.replace(/(^\s*)|(\s*$)/gi,"");
+    //s = s.replace(/[ ]{2,}/gi," ");
 
     var self = this, stationsObj = {}, stationAry = stationList.split("\n");
 
-    // trime trailing spaces
-    //s = s.replace(/(^\s*)|(\s*$)/gi,"");
-    //s = s.replace(/[ ]{2,}/gi," ");
-    console.log(stationList);
+    console.log("STATION LIST: " , stationList);
 
     $.each(stationAry, function ( index, station) {
 
@@ -547,9 +574,16 @@ ioosSOS.prototype.stationListLB = function ( stationList ) {
 }
 
 
-Array.prototype.stdev = function (key) {
+Array.prototype.stdev = function ( key ) {
 
-    var sum = 0, diff_ary = [], mean, diff_sum = 0, stddev, len = this.length;
+    // basic standard deviation for an array
+
+    var sum = 0,
+        diff_ary = [],
+        mean,
+        diff_sum = 0,
+        stddev,
+        len = this.length;
 
     for (var x = 0; x < len - 1; x++) {
         sum += this[x][key];
