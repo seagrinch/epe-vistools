@@ -4,8 +4,8 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 8/27/12
-// Version 0.1.8
+// Revised 9/21/12
+// Version 0.2.1
 
 var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
@@ -15,30 +15,75 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
     this.evtool = new EVTool();
     this.sos = new ioosSOS();
 
-    // get the parameters required for the tool
-    this.parameters = this.sos.getObservationObj(
-        [
-            "sea_water_temperature",
-            "sea_water_salinity"
-        ]
-    );
-
-    //CONSOLE.LOG//console.log("Tool Parameters:", self.parameters)
-
     // define the default tool configuration.. used when no configuration override is provided
     this.configuration = {
 
         "title":"EV TOOL 1",
         "subtitle":"Month Comparator",
 
-        "station_list":"44025|LONG ISLAND 33\n44027|Jonesport, Maine",
-        "parameter_list":["sea_water_temperature", "sea_water_salinity"],
+        "station_list":["44025|LONG ISLAND 33","44027|Jonesport, Maine"],
 
+        // limited list, as per tool spec.. currently not selectable
+        "observation_list":["sea_water_temperature", "sea_water_salinity"],
+
+        // default station to show
         "station":"44025",
+
+        // default observation to show
         "observation":"sea_water_temperature",
-        "months": "2010-01|1|#6699CC\n2010-02|1|#FF0000",
-        "mean_lines":true
+
+        // all observations
+        "observations":[
+            "sea_water_temperature",
+            "sea_water_salinity",
+            "air_temperature",
+            "air_pressure_at_sea_level",
+            "waves",
+            "winds"
+        ],
+
+        //todo: conver to objects
+        "datasets" : {
+
+            "2009-01" : {
+                "isVisible" : true,
+                "color"      : "#CCC"
+            },
+            "2010-01" : {
+                "isVisible" : false,
+                "color"      : "#666"
+            },
+            "2011-01" : {
+                "isVisible" : true,
+                "color"      : "#999"
+            },
+            "2012-01" : {
+                "isVisible" : false,
+                "color"      : "#6699CC"
+            }
+        },
+
+        "months": [
+            "2009-01|1|#CCC",
+            "2011-01|1|#666",
+            "2010-01|1|#999",
+            "2012-01|1|#6699CC"
+        ],
+
+        "mean_lines":"visible"
     };
+
+    // all observations.. no longer limiting observations for this tool
+    this.observations = this.sos.getObservationObj(
+        [
+            "sea_water_temperature",
+            "sea_water_salinity",
+            "air_temperature",
+            "air_pressure_at_sea_level",
+            "waves",
+            "winds"
+        ]
+    );
 
     // create the tool object with id. initialize the custom and default configuration objects
     this.tool = {
@@ -56,28 +101,16 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
     // define the controls that will be used to modify the default and custom instances
     this.controls = {
-        "station_list": {
-            "type": "textarea",
-            "label": "Station List",
-            "tooltip": "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.",
-            "default_value": self.tool.configuration.custom.station_list,
-            "delimiter":"|",
-            "namedValues":["Station ID","Station Name"] //? not sure about this approach just yet
-        },
-        "months":{
-            "type": "textarea",
-            "label": "Months",
-            "tooltip": "Enter a list of Months stations in the format: <br><em>YYYY-MM|Visibility(0 or 1)|#Hex Color</em><br>Use a new line for each month.<br>ie. 2012|1|#6699CC",
-            "default_value": self.tool.configuration.custom.months,
-            "delimiter":"|"
-        },
-        station:{
-            "type": "textbox",
-            "label": "Default Station",
-            "tooltip": "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.<br> ie. 44027|Jonesport, Maine",
-            "default_value": self.tool.configuration.custom.station
+        "station_list" : {
+            "type"          : "textarea",
+            "label"         : "Station List",
+            "description"   : "Station List",
+            "tooltip"       : "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.",
+            "default_value" : self.tool.configuration.custom.station_list,
+            "delimiter"     : "|",
+            "namedValues"   : ["Station ID", "Station Name"] //? not sure about this approach just yet
         }
-    }
+    };
 
     // create the stations obeject from the line delimited string
     this.stations = this.sos.stationListLB( self.tool.configuration.custom.station_list );
@@ -85,125 +118,182 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
     // tool layout object
     this.tool.layout = {
         container:{
-            margin:{top:10, right:10, bottom:10, left:40},
-            width:760,
-            height:450
+            // margin:{ top:10, right:10, bottom:10, left:30 },
+            // width:700,
+            // height:500
+
+            margin:{
+                  left:20
+            }
+        },
+
+        chart:{
+
+            height:400,
+
+            title:{
+                height:40
+            },
+            axisX:{
+                height:40
+            },
+            titleAxisY:{
+                width:30
+            },
+            axisY:{
+                width:40
+            }
+
+            //margin:{top:40, right:10, bottom:40, left:20},
+            //padding:{top:10, right:10, bottom:10, left:40},
+            //width:500
         },
 
         controls:{
-            margin:{top:10, right:20, bottom:0, left:200},
-            width:200
-        },
-
-        graph:{
-            margin:{top:40, right:10, bottom:40, left:20},
-            padding:{top:10, right:10, bottom:10, left:40},
-            width:600
+            //margin:{top:10, right:20, bottom:0, left:0},
+            //width:450
         }
+
     };
 
     // tool controls object
     this.tool.controls = {};
 
-    this.tool.graph = {
+    this.tool.chart = {
 
-        timeseries:{
+        "timeseries":{
             x:null,
             y:null
         },
 
-//        dateFormats:{
-//            hours:d3.time.format("%H:M"),
-//            days:d3.time.format("%d"),
-//            months:d3.time.format("%m/%y"),
-//            tooltip:d3.time.format("%Y-%m-%d %H:%M %Z"),
-//            data_source:d3.time.format("%Y-%m-%dT%H:%M:%SZ")
-//        },
-//        dateScales:{
-//            hours:d3.time.scale().tickFormat("%H:M"),
-//            days:d3.time.scale().tickFormat("%d"),
-//            months:d3.time.scale().tickFormat("%m/%y"),
-//            tooltip:d3.time.scale().tickFormat("%Y-%m-%d %H:%M %Z")
-//        },
-        d_format:d3.format("0.2r")
+        formats:{
+                twoDigitMonth : d3.format("02d"),
+                d_format : d3.format( "0.2r" )
+        },
+        options:{
+            legendSorting:"ascending"
+
+        }
     };
 
-    this.tool.graph.axis = {
-        x:d3.svg.axis()
-              .scale(self.tool.graph.timeseries.x)
-              .orient("bottom")
-              .tickFormat(d3.time.format("%m-%d")),
-        y:d3.svg.axis()
-              .scale(self.tool.graph.timeseries.y)
-              .orient("left")
-    }
-
     // initialize the timeseries object, where all monthly data will be stored
-    this.tool.timeseries = {
-        observation:"",
-        station:"",
-        datasets:{},
-        extents:{
-            x:{},
-            y:{}
+    this.tool.chart.timeseries = {
+        "observation" : "",
+        "station"     : "",
+        "datasets"    : {},
+        "extents"     : {
+            "x" : {},
+            "y" : {}
         }
     };
 
     // set the available values for the inputs
     this.inputs = {
-        months: self.evtool.staticMonths(),
-        years:["2009", "2010", "2011", "2012"]
-    }
+        "months": self.evtool.staticMonths(),
+        "years" : self.evtool.getYearsToPresent("2009")
+    };
+
+    this.uiToolInterface( );
 
     // draw ALL UI CONTROLS
-    this.uiGraph();
+    this.uiChart( );
 
     // draw ALL UI CONTROLS
-    this.uiControls();
+    this.uiControls( );
 
     // load defaults if provided
-    this.loadDefaultTimeseries();
+    this.loadDefaultTimeseries( );
+
+
 
 };
 
-EV1_Month_Comparator.prototype.uiGraph = function () {
+EV1_Month_Comparator.prototype.uiToolInterface = function ( ) {
+
+    var self = this, id = self.tool.domID,
+        layout = self.tool.layout,
+        chart = layout.chart,
+        container = layout.container;
+
+    var uiContainer = $("<div></div>")
+        .attr("id",id + "-tool-container")
+        .addClass("container-fluid");
+
+    uiContainer.append(
+        $("<div></div>")
+            .addClass("row-fluid")
+            .append(
+                $("<div></div>").addClass("span9 kill-margin")
+                    .attr("id",id + "-uiChart")
+
+            )
+            .append(
+                $("<div></div>")
+                    .addClass("span3 kill-margin")
+                    .attr("id",id + "-uiControls")
+            )
+    );
+
+    // add tool container to obtain  dimensions
+    $("#" + id).append( uiContainer );
+
+    chart.width = $("#" + id + "-uiChart").width();
+
+    // calculate container height.. chart + chart title + chart x axis
+    container.height = chart.height + chart.title.height + chart.axisX.height;
+
+    // controls
+    layout.controls.width = $("#" + id + "-uiControls").width();
+    layout.controls.height = chart.height;
+
+    // d3 selection references
+    self.toolContainer = d3.select( "#" + id + "-tool-container" );
+    self.chartContainer = d3.select( "#" + id + "-uiChart" );
+    self.controlContainer = d3.select( "#" + id + "-uiControls" );
+
+};
+
+EV1_Month_Comparator.prototype.uiChart = function () {
 
     var self = this;
 
     var layout = self.tool.layout,
-        container = layout.container,
-        graph = self.tool.graph,
-        controls = self.tool.controls,
+        //container = layout.container,
+        chart = self.tool.chart,
+        //controls = self.tool.controls,
         config = self.tool.configuration.custom,
-        id = self.tool.domID;
+        id = self.tool.domID,
+        chartTitleHeight = layout.chart.title.height,
+
+        axisHeightX = layout.chart.axisX.height,
+        axisWidthY = layout.chart.axisY.width,
+        axisTitleWidthY = layout.chart.titleAxisY.width,
+        chartMarginWidth =  axisWidthY + axisTitleWidthY + 20;
 
     // some calculations for width and height minus margins
-    container.width_m = container.width - container.margin.left - container.margin.right;
-    container.height_m = container.height - container.margin.top - container.margin.bottom;
-
-    layout.graph.height = container.height_m;
-    layout.graph.height_m = layout.graph.height - layout.graph.margin.top - layout.graph.margin.bottom;
+    //container.width_m = container.width - container.margin.left - container.margin.right;
+    //container.height_m = container.height - container.margin.top - container.margin.bottom;
 
     // adjust the d3 line details
-    graph.timeseries.y = d3.scale.linear()
-        .range([layout.graph.height_m, 0]);
+    chart.timeseries.y = d3.scale.linear().range( [ layout.chart.height, 0 ] );
 
     /***************************************/
     // d3 elements
     /***************************************/
 
-    self.x_vals = d3.scale.linear()
-        .range([0, layout.graph.width])
-        .domain([1, 32])
+    self.x_vals = d3.scale.linear( )
+        .range( [ 0, layout.chart.width - chartMarginWidth ] )
+        .domain([1, 32]);
 
     self.x_axis = d3.svg.axis()
-        .scale(self.x_vals)
-        .ticks(6)
-        .tickSubdivide(false);
+        .scale( self.x_vals )
+        .ticks( 6 )
+        .tickSubdivide( false );
 
     // jQuery DOM Elements
 
-    self.tool.graph.tooltip = d3.select("body")
+    //tooltip
+    self.tool.chart.tooltip = self.toolContainer
         .append("div")
         .style("position", "absolute")
         .style("z-index", "10")
@@ -213,28 +303,14 @@ EV1_Month_Comparator.prototype.uiGraph = function () {
         .style("border", "1px solid #333333")
         .text("");
 
-    self.tool_container = d3.select("#" + id)
-        .append("div")
-        .attr("id", id + "-tool-container");
-
-    self.d_controls = self.tool_container.append("div")
-        .attr("id",  id + "-controls-container")
-        .style("margin-top", "10px")
-        .append("div")
-        .attr("id",  id + "-controls-div")
-        .style("position", "absolute")
-        .style("margin-left", layout.graph.width + layout.container.margin.left + layout.graph.margin.left + layout.graph.margin.right + "px")
-        .style("width", layout.controls.width + "px")
-    //.style("height", layout.container.height_m - 20 + "px")
-
     // loading div
-    self.d_loading = self.tool_container.append("div")
+    self.d_loading = self.toolContainer.append("div")
         .attr("id",  id + "div-loading")
         .style("z-index", "100")
         .style("float", "left")
         .style("position", "absolute")
-        .style("width", self.tool.layout.container.width + "px")
-        .style("height", self.tool.layout.container.height + "px")
+        .style("width", self.tool.layout.chart.width + "px")
+        .style("height", self.tool.layout.chart.height + "px")
         .style("opacity", ".8")
         .style("background-color", "#CCCCCC")
         .style("visibility", "hidden")
@@ -244,198 +320,184 @@ EV1_Month_Comparator.prototype.uiGraph = function () {
         .attr("alt", "LOADING....")
         .style("position", "absolute")
         .style("top", (self.tool.layout.container.height) / 2 - 20 + "px")
-        .style("left", (self.tool.layout.container.width / 2) - 30 + "px")
+        .style("left", (self.tool.layout.container.width / 2) - 30 + "px");
 
+    // title svg
+    self.tool.chart.title = self.chartContainer.append("svg")
+        .attr( "id", id + "-chart-svg-title")
+        .attr( "width", layout.chart.width )// need full width, offset text
+        .attr( "height", chartTitleHeight )// chart area height
+        .append( "svg:text")
+        .attr( "id", id + "-chart-label-title")
+        .attr( "font-size","17")
+        .attr( "font-weight","bold")
+        .attr( "font-stretch","wider")
+        .attr( "x", ( layout.chart.width - chartMarginWidth ) / 2 + axisTitleWidthY + axisWidthY )
+        .attr( "y", axisTitleWidthY / 2)
+        .attr( "fill","#000")
+        .attr("text-anchor","middle")
+        .text( self.observations[config.observation].label + " at " + self.stations[config.station].label);
 
-    self.svg = self.tool_container.append("svg")
-        .attr("id",  id + "-svg-main")
-        .attr("width", container.width)
-        //.attr("width", container.width + container.margin.left + container.margin.right)
-        .attr("height", container.height);
+    // y axis svg
+    self.tool.chart.axisY = self.chartContainer.append("svg")
+        .attr( "id", id + "-chart-svg-yAxis")
+        .attr( "width", axisWidthY )
+        .attr( "height", layout.chart.height)// chart area height
+        .append( "svg:text")
+        .attr( "id", id + "-chart-label-yAxis")
+        .attr( "transform", "rotate(270)" )
+        .attr( "x", -( layout.chart.height / 2) )
+        .attr( "y", axisWidthY / 2 )
+        .attr( "text-anchor","middle")
+        .attr( "font-size","14")
+        .attr( "font-weight","bold")
+        .attr( "font-stretch","wider")
+        .text(  self.observations[config.observation].label);
 
-    self.d_timeseries = this.svg.append("g")
-        .attr("id", id + "-timeseries-g")
-        //.attr("transform","translate(0,"+ layout.graph.margin.top +")")
-        .attr("transform", "translate(" + container.margin.left + "," + 0 + ")");
-
-    // DomElement: title
-    self.svg.append("svg:text")
-        .attr("id",  id + "graph-title")
-        .text("")
-        .attr("text-anchor", "middle")
-        .attr("x", (container.width / 2) - (container.margin.left + container.margin.right) / 2)
-        .attr("y", 15)
-        .attr("class", "graph_title");
-
-    // DomElement: x-axis label
-    d3.select("#" + id + "-svg-main")
-        .append("svg:text")
-        .attr("id", id + "graph-x-axis-label")
-        .text("Day of Month")
-        .attr("text-anchor", "middle")
-        .attr("stroke-width", 2)
-        .attr("x", (layout.graph.width / 2) + 50)
-        .attr("y", layout.graph.height + 10)
-        .attr("class", "graph_title");
-
-    // DomElement: y-axis label
-    d3.select("#" + id + "-svg-main")
-        .append("svg:text")
-        .attr("id",  id + "graph-y-axis-label")
-        .attr("text-anchor", "middle")
-        .attr("x", -(container.height / 2))
-        .attr("y", container.margin.left / 2)
-        .attr("class", "graph_title")
-        .attr("transform", "rotate(270)")
-        .text("Degrees Celcius")
-
-    d3.select("#" + id + "-svg-main")
+    self.tool.chart.dynamicY = self.chartContainer.append("svg")
+       // .attr("id",  id + "-dynamic_y")
+        .attr("width", axisWidthY)
+        .attr("height", layout.chart.height)
         .append("svg:g")
+        .attr("id", id + "-dynamic_y")
+        .attr("class", "y axis")
+        .attr("transform","translate("+ (axisWidthY-2) +",0)");
+
+    // chart svg
+    self.tool.chart.svg = self.chartContainer.append("svg")
+        .attr("id",  id + "-svg-main")
+        .attr("width", layout.chart.width - chartMarginWidth)
+        .attr("height", layout.chart.height);
+
+    // x axis svg
+    self.tool.chart.axisX = self.chartContainer.append("svg")
+        .attr( "width", layout.chart.width )
+        .attr( "height", axisHeightX )
+        .append("svg:g")
+        .attr("id",  id + "-chart-svg-xAxis")
+        .attr( "width", layout.chart.width - chartMarginWidth )
+        .attr( "height", axisHeightX )
         .attr("class", "axis")
+        .attr("transform","translate("+ ( axisTitleWidthY + axisWidthY + 10) +",1)")
         .call(self.x_axis)
         .attr("fill", "none")
-        .attr("stroke", "#000000")
-        .attr("stroke-width", "1")
-        .attr("transform", "translate(" + (container.margin.left + layout.graph.margin.left) + ", " + (layout.graph.height - layout.graph.margin.bottom) + ")");
+        .attr("stroke", "#000000");
 
-}
+    self.tool.chart.axisXlabel = self.chartContainer.append("svg")
+        .attr( "width", layout.chart.width )
+        .attr( "height", axisHeightX )
+        .append( "svg:text")
+        .attr( "id", id + "-chart-label-axisX")
+        //.attr( "x", (layout.chart.width / 2) + axisTitleWidthY + axisWidthY )
+        .attr( "x", ( layout.chart.width - chartMarginWidth ) / 2 + axisTitleWidthY + axisWidthY )
+        .attr( "y", axisTitleWidthY / 2)
+        .attr( "font-size","14")
+        .attr( "font-weight","bold")
+        .attr( "fill","#000")
+        .attr( "text-anchor","middle")
+        .text( "Day of Month");
 
-EV1_Month_Comparator.prototype.loadDefaultTimeseries = function () {
-    var self = this,
-        config = self.tool.configuration.custom,
-        datasets = self.tool.timeseries.datasets,
-        id = self.tool.domID;
+    self.d_timeseries = self.tool.chart.svg.append("g")
+        .attr("id", id + "-timeseries-g")
 
-    if (config.months.length > 0) {
-
-        console.log("There are " + config.months.length + " months of default data.")
-
-        $.each(config.months.split("\n"), function( index, m ) {
-
-            console.log("CONFIG MONTH",m);
-
-            console.log("splitting up config.months[m] with " + m);
-            console.log(config.months);
-
-            var part_month = m;
-            var parts = part_month.split("|");
-
-            var visibility = parts[1],
-                color = parts[2],
-                year_month = parts[0].split("-"),
-                year = year_month[0],
-                month = year_month[1],
-                station = config.station,
-                observation = config.observation,
-                dstmp = month + "_" + year,
-                nextDate = new Date(year, month, 1),
-                nextMonth = nextDate.getMonth() + 1;
-
-            if (nextMonth < 10) {
-                nextMonth = "0" + nextMonth;
-            }
-
-            var url = self.sos.requestUrlTimeseriesDate(
-                station,
-                observation,
-                {
-                    dateStart:year + "-" + month + "-01",
-                    dateEnd:nextDate.getFullYear() + "-" + nextMonth + "-01"
-                }
-            );
-
-            //var event_time = "eventtime=" + year + "-" + month + "-01T00:00Z/" + nextDate.getFullYear() + "-" + nextMonth + "-01T00:00Z";
-
-            // set all dataset properties
-            datasets[dstmp] = {
-
-                observation:observation,
-                colY:self.parameters[observation].column,
-                month:month,
-                year:year,
-                color:color,
-                station:station,
-                visibility:1,
-                config:year + "-" + month + "|1|" + color,
-                url:url,
-                isDrawReady:false
-            };
-
-            if (m == 0) {
-
-                $("#" + id + "graph-title")
-                    .text(self.parameters[observation].label + " at " + self.stations[station].label);
-
-                $("#" + id + "graph-y-axis-label")
-                    .text(self.parameters[observation].label);
-
-            }
-
-            d3.csv(datasets[dstmp].url, function (ts_data) {
-                //console.log(ts
-                var datetime = ts_data[0]["date_time"].substring(0, 7),
-                    year_month = datetime.split("-"),
-                    ds_name = year_month[1] + "_" + year_month[0];
-
-                datasets[ds_name].data = ts_data;
-
-                self.timeseriesParseData(ds_name);
-
-            });
-        });
-    }
-}
-
-EV1_Month_Comparator.prototype.toggleMeanLines = function () {
-    var self = this, id = self.tool.domID;
-
-    if ($('#' +  id + '-ctrl-checkbox-mean-lines').is(':checked')) {
-        $(".svg_mean").css("visibility", "visible");
-    }
-    else {
-        $(".svg_mean").css("visibility", "hidden");
-    }
-}
+};
 
 EV1_Month_Comparator.prototype.uiControls = function () {
     var self = this;
 
     var container = self.tool.layout.container,
-        id = self.tool.domID;
+        id = self.tool.domID,
+        config = self.tool.configuration.custom;
 
-    // CONTROLS - Legend
+    // CONTROLS
 
-    var ctrl_legend = $("<div></div>")
-        .attr("id",  id + "-legend-container")
-        .append(
 
-            $("<div></div>")
-                .attr("id",  id + "-legend")
+    // ui notification items
 
+    var loading_data_image = $( "<img />" )
+        .attr( "id", id + "-img_loading_data" )
+        .attr( "src", "http://epe.marine.rutgers.edu/visualization/img/" + "loading_a.gif" )
+        .css( { "float" : "right", "margin-right" : "20px" } )
+        .hide( );
+
+    // Month Selector
+
+    var ctrl_dd_month_select = $( "<select></select>" )
+        .attr( "id",  id + "-ctrl-dropdown-month" )
+        .css( { "width" : "auto" } )
+        .change( function ( ) {
+            self.customizationUpdate( );
+        });
+
+    $.each( self.inputs.months, function ( month ) {
+        ctrl_dd_month_select.append(
+            $( "<option></option>" )
+                .html( month )
+                .val( self.inputs.months[ month ] )
         )
-        .append(
+    });
 
-            $("<button></button>")
-                .attr("id",  id + "btn_add_month")
-                .addClass("btn")
-                .on("click", function (evt) {
+    // Year Selector
 
-                    // get position of btn_add_month
+    var ctrl_dd_year_select = $( "<select></select>" )
+        .attr( "id",  id + "-ctrl-dropdown-year" )
+        .css( { "width": "auto" }  )
+        .change( function () {
+            self.customizationUpdate( );
+        });
 
-                    $("#"+ id + "add-month-div")
+    $.each( self.inputs.years, function ( year ) {
+        ctrl_dd_year_select.append(
+            $( "<option></option>" )
+                .html( self.inputs.years[year] )
+                .val( self.inputs.years[year]) )
+    });
 
-                        .css(
-                        {
-                            "top":evt.pageY + "px",
-                            //"left":evt.clientX + "px",
-                            "height":"auto",
-                            "width":"200px",
-                            "position":"absolute"
-                        })
-                        .show()
-                })
-                .html("Add Month")
-        )
+    // Color Picker
+
+    var ctrl_colorpicker_input = $( "<input />" )
+        .attr( { "id": id + "-ctrl-colorpicker", "type":"text" } )
+        .css( { "width" : "60px" } )
+       // .addClass( "span5" )
+        .val( "#6699CC" );
+
+    var ctrl_colorpicker_span = $( "<span></span>" )
+        .addClass("add-on").append(
+            $("<i></i>")
+                .css({"background-color":"#6699CC"})
+    );
+
+    var ctrl_colorpicker = $("<div></div>")
+        .addClass( "input-append color" )
+        .attr( {"id": id + "-ctrl-colorpicker-cp", "data-color":"#6699CC", "data-color-format":"hex"} )
+        .append( ctrl_colorpicker_input )
+        .append( ctrl_colorpicker_span );
+
+    $(ctrl_colorpicker)
+        .colorpicker()
+        .on( "changeColor", function ( cp ) {
+            $( "#" + id + "-ctrl-colorpicker" ).val( cp.color.toHex() );
+            self.customizationUpdate( );
+        });
+
+    // add month button
+
+    var ctrl_btn_addmonth = $("<a></a>")
+        .attr("id",  id + "btn_add_timeseries")
+        .addClass( "btn btn-primary" )
+        .on( "click", function () {
+
+            var tmpMonth = $("#" +  id + "-ctrl-dropdown-month").val(),
+                tmpYear = $("#" + id + "-ctrl-dropdown-year").val(),
+                tmpColor = $("#" + id + "-ctrl-colorpicker").val();
+
+            self.requestData(tmpMonth,tmpYear,tmpColor);
+
+        })
+        .html("Add Month");
+
+
+    // Station, Parameter, and Chart Options
 
     // CONTROLS - STATIONS
 
@@ -444,7 +506,7 @@ EV1_Month_Comparator.prototype.uiControls = function () {
         .change(function () {
             self.customizationUpdate();
             self.updateStationAndObservation();
-        })
+        });
 
     $.each(self.stations, function (station) {
         ctrl_dd_station_select.append(
@@ -454,49 +516,52 @@ EV1_Month_Comparator.prototype.uiControls = function () {
     });
 
     var ctrl_dd_station = $("<div></div>")
-        .addClass("control-dd")
+        .addClass("control-dd widthAuto")
         .append(
-        $("<label />")
-            .attr({'for': id + '-ctrl-dropdown-station', 'title':"Select a Station"})
-            .css("display", "inline-block")
-            .html("Station")
-    )
-        .append(ctrl_dd_station_select)
+            $("<label />")
+                .attr({'for': id + '-ctrl-dropdown-station', 'title':"Select a Station"})
+                .css("display", "inline-block")
+                .html("Station")
+        )
+        .append(ctrl_dd_station_select);
 
-    ctrl_dd_station_select.val(self.tool.configuration.custom.station);
-
+    ctrl_dd_station_select.val( self.tool.configuration.custom.station );
 
     // CONTROLS - Observation
 
-    var ctrl_dd_parameter_select = $("<select></select>")
+    var ctrl_dd_observation_select = $("<select></select>")
         .attr("id", id + "-ctrl-dropdown-observation")
+        .addClass("widthAuto")
         .on("change", function () {
             // alert("new observation");
             self.customizationUpdate();
             self.updateStationAndObservation();
         });
 
-    $.each(self.parameters, function (param) {
-        ctrl_dd_parameter_select.append(
+    $.each(config.observations, function (i, observation) {
+        console.log("observations", observation, self.observations);
+
+        ctrl_dd_observation_select.append(
             $("<option></option>")
-                .html(self.parameters[param].label)
-                .val(param))
+                .html(self.observations[observation].label)
+                .val(observation))
     });
 
-    var ctrl_dd_parameter = $("<div></div>")
-        .addClass("control-dd")
+    var ctrl_dd_observation = $("<div></div>")
+        .addClass("control-dd widthAuto")
         .append(
-        $("<label />")
-            .attr({
-                'for': id + '-ctrl-dropdown-observation',
-                'title':"Select an Observation"
-            })
-            .css("display", "inline-block")
-            .html("Observation")
-    )
-        .append(ctrl_dd_parameter_select)
+            $("<label />")
+                .attr({
+                    'for': id + '-ctrl-dropdown-observation',
+                    'title':"Select an Observation"
+                })
+                .css("display", "inline-block")
+                .html("Observation")
+        )
+        .append(ctrl_dd_observation_select);
 
-    // CONTROLS - MEAN LINE TOGGLE
+
+    // CONTROLS (OPTIONS) - MEAN LINE TOGGLE
 
     var ctrl_checkbox_mean_lines = $("<div></div>")
 
@@ -514,7 +579,8 @@ EV1_Month_Comparator.prototype.uiControls = function () {
 
                 })
                 .on("click", function () {
-                    self.toggleMeanLines()
+                    self.toggleMeanLines();
+                    self.customizationUpdate( );
                 })
         )
 
@@ -524,265 +590,331 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                     "title":"Toggle the visibility of the Monthly Mean Lines"})
                 .css({"display":"inline-block", "margin":"6px"})
                 .html("Show Mean Lines")
-        )
+        );
 
-    // Month Selector
 
-    var ctrl_dd_month_select = $("<select></select>")
-        .attr("id",  id + "-ctrl-dropdown-month")
-        .change(function () {
-            self.customizationUpdate();
-        })
+    // Control Legend
 
-    $.each(self.inputs.months, function (month) {
-        ctrl_dd_month_select.append(
-            $("<option></option>")
-                .html(month)
-                .val(self.inputs.months[month])
-        )
-    });
-
-    var ctrl_dd_month = $("<div></div>")
-        .addClass("control-dd")
-        .append(
-            $("<label />")
-                .attr({'for': id + '-ctrl-dropdown-month', 'title':"Select a Month"})
-                .css("display", "inline-block")
-                .html($("<h4>Month: </h4>"))
-        )
-        .append(ctrl_dd_month_select)
-
-    // Year Selector
-
-    var ctrl_dd_year_select = $("<select></select>")
-        .attr("id",  id + "-ctrl-dropdown-year")
-        .change(function () {
-            self.customizationUpdate();
-        });
-
-    $.each(self.inputs.years, function (year) {
-        ctrl_dd_year_select.append(
-            $("<option></option>")
-                .html(self.inputs.years[year])
-                .val(self.inputs.years[year]))
-    });
-
-    var ctrl_dd_year = $("<div></div>")
-        .addClass("control-dd")
-        .append(
-        $("<label />")
-            .attr({'for': id + '-ctrl-dropdown-year', 'title':"Select a Year"})
-            .css("display", "inline-block")
-            .html($("<h4>Year: </h4>"))
-    )
-        .append(ctrl_dd_year_select)
-
-    // Color Picker
-
-    var ctrl_colorpicker_lbl = $("<label />")
-        .attr({'for': id + "-ctrl-colorpicker-cp", 'title':"Select a color for the month to be added."})
-        .html($("<h4>Color: </h4>"))
-
-    var ctrl_colorpicker_input = $("<input />")
-        .attr({"id": id + "-ctrl-colorpicker", "type":"text"})
-        .addClass("span5")
-        .val("#6699CC");
-
-    var ctrl_colorpicker_i = $("<i></i>")
-        .css("background-color", "#6699CC");
-
-    var ctrl_colorpicker_span = $("<span></span>")
-        .css("float","right")
-        .addClass("add-on span4")
-        .append(ctrl_colorpicker_i);
-
-    var ctrl_colorpicker_div = $("<span></span>")
-        .addClass("input-append color")
-        .attr({"id": id + "-ctrl-colorpicker-cp", "data-color":"#6699CC", "data-color-format":"hex"});
-
-    ctrl_colorpicker_div.append(ctrl_colorpicker_span);
-    ctrl_colorpicker_div.append(ctrl_colorpicker_input);
-
-    $(ctrl_colorpicker_div)
-        .colorpicker()
-        .on("changeColor", function (cp) {
-            $("#" + id + "-ctrl-colorpicker").val(
-                cp.color.toHex()
-            )
-            self.customizationUpdate();
-        });
-
-    var ctrl_colorpicker = $("<div></div>")
-        //.addClass("ctlhandle")
-        .append(ctrl_colorpicker_lbl)
-        .append(ctrl_colorpicker_div);
-
-    var ctrl_btn_addmonth = $("<a></a>")
-        .attr("id",  id + "btn_add_timeseries")
-        .css("margin-top","6px")
-        .addClass("btn btn-primary")
-        .on("click", function () {
-            //add_month_timeseries()
-            self.requestData();
-        })
-        .html("Add Month")
-
-    var loading_data_image = $("<img />")
-        .attr("id", id + "-img_loading_data")
-        .attr("src", "http://epe.marine.rutgers.edu/visualization/img/" + "loading_a.gif")
-        .css({"float":"right","margin-right":"20px"})
-        .hide();
-
-    var ctrl_add_month = $("<div></div>")
-        .attr("id", id + "add-month-div")
-        .hide()
-        .addClass("well")
+    var ctrl_legend = $("<div></div>")
+        .attr("id",  id + "-legend-container")
+        .addClass("container-fluid kill-padding")
 
         .append(
-            $("<button>x</button>").addClass("close").on("click", function () {
-                $("#" + id + "add-month-div").hide()
-            })
+
+            $("<div></div>")
+                .attr("id",  id + "-legend-header")
+                .append(
+
+                    $("<div></div>")
+                        .addClass("row-fluid")
+                        .append($("<div></div>").addClass("span2").css("font-weight", "bold").html("&nbsp;"))
+                        .append(
+                            $("<div></div>").addClass("span3")
+                                .css("font-weight", "bold")
+                                .html("Month")
+                                .on("click",function(){
+                                    self.legendUpdate("sort");
+                                })
+                        )
+                        .append($("<div></div>").addClass("span3").css("font-weight", "bold").html("Mean"))
+                        .append($("<div></div>").addClass("span4").css("font-weight", "bold").html("Stdv"))
+                )
         )
+        .append(
+
+            $("<div></div>")
+                .addClass("legend-stats")
+
+                .append(
+                    $("<div></div>")
+                        .addClass("row-fluid")
+                        .append(
+                            $("<div></div>")
+                                .addClass("span12")
+                                .attr("id",  id + "-legend-stats" )
+                                .css(
+                                    {
+                                        "min-height" : 100,
+                                        "max-height" : self.tool.layout.container.height/2 - 80,
+                                        "overflow-y":"auto"
+
+                                    }
+                                )
+                        )
+                )
+        );
+
+    // data request area
+
+    var ctrl_data_request = $("<div></div>")
+
+        .append(
+            $("<div></div>")
+                    .append($("<h4></h4>")
+                    .css({"border-bottom":"1px solid #999"})
+                    .html("Add Month Time Series"))
+        )
+
+        .append(
+
+
+            $("<div></div>")
+                .attr("id",  id + "-add-month")
+                .append(
+                    $("<div></div>")
+                        .addClass("container-fluid  kill-padding")
+                        .append(
+                            $("<div></div>")
+                                .addClass("row-fluid")
+                                .append(
+                                    $("<div></div>")
+                                        .addClass("span12")
+                                        .append( $( "<h5></h5>" )
+                                            .html("1. Select Month and Year")
+                                    )
+                                )
+                        )
+                        .append(
+
+                            $("<div></div>")
+                                .addClass( "row-fluid" )
+                                .append(
+                                    $("<div></div>").addClass("span6")
+                                        .append( ctrl_dd_month_select )
+                                )
+                                .append(
+                                    $("<div></div>").addClass( "span6" )
+                                        .append( ctrl_dd_year_select )
+                                )
+                        )
+                        .append(
+
+                            $("<div></div>")
+                                .addClass( "row-fluid" )
+                                .append(
+                                    $("<div></div>")
+                                        .addClass("span6")
+                                        .append(
+                                            $("<h5></h5>")
+                                                .html("2. Choose a Color")
+                                        )
+                                )
+                                .append(
+                                    $("<div></div>")
+                                        .addClass("span6")
+                                        .append(
+                                        $("<h5></h5>")
+                                            .html("3. Request Data")
+                                    )
+                                )
+                        )
+                        .append(
+                                $("<div></div>")
+                                    .addClass( "row-fluid" )
+
+                                    .append(
+                                        $("<div></div>")
+                                            .addClass("span6")
+                                            .append( ctrl_colorpicker )
+                                    )
+                                    .append(
+                                        $("<div></div>")
+                                            .addClass("span6 kill-margin")
+                                            .append( ctrl_btn_addmonth )
+                                    )
+                        )
+
+                    )
+            );
+
+    // chart options
+
+    var ctrl_chart_options = $("<div></div>")
+        .attr("id",  id + "-chart-options")
+        .append(
+        $("<div></div>")
+            .addClass("container-fluid  kill-padding")
             .append(
-            $("<h3>Add Month</h3>")
-        )
-        .append(ctrl_dd_month)
-        .append(ctrl_dd_year)
-        .append(ctrl_colorpicker)
-        .append(ctrl_btn_addmonth)
-        .append(loading_data_image)
+                    $("<div></div>")
+                        .addClass("row-fluid")
+                        .append(
+                        $("<div></div>")
+                            .addClass("span12")
+                            .append( ctrl_dd_observation )
+                    )
+                )
+            .append(
+                $("<div></div>")
+                    .addClass("row-fluid")
+                    .append(
+                    $("<div></div>")
+                        .addClass("span12")
+                        .append( ctrl_dd_station )
+                )
+            )
+            .append(
+                $("<div></div>")
+                    .addClass("row-fluid")
+                    .append(
+                    $("<div></div>")
+                        .addClass("span12")
+                        .append( ctrl_checkbox_mean_lines )
+                )
+            )
+    );
 
-    // Append all Controls
-    $("#"+ id + "-controls-div")
-        .addClass("well")
+    // add all control parts.. options, data request, and legend
+
+    $("#" + id + "-uiControls")
+        .append(ctrl_chart_options)
         .append(ctrl_legend)
-        .append($("<hr/>"))
-        .append(ctrl_dd_station)
-        .append(ctrl_dd_parameter)
-        .append(ctrl_checkbox_mean_lines)
-        .append(ctrl_add_month);
+        .append(ctrl_data_request)
+
 };
 
-EV1_Month_Comparator.prototype.requestData = function () {
+EV1_Month_Comparator.prototype.loadDefaultTimeseries = function () {
+    var self = this,
+        datasets = self.tool.configuration.custom.datasets;
 
-    console.log("Loading CSV....");
+    // load all datasets from configuration
+    $.each( datasets, function ( ds_name, dataset ) {
 
-    var self = this, id = self.tool.domID;
+        var year_month = ds_name.split("-"),
+            year = year_month[0],
+            month = year_month[1];
 
-    $("#"+ id + "-img_loading_data").show();
+        self.requestData(month,year, dataset.color);
 
-    var month = $("#" +  id + "-ctrl-dropdown-month").val(),
-        year = $("#" + id + "-ctrl-dropdown-year").val(),
-        color = $("#" + id + "-ctrl-colorpicker").val();
+    });
+};
 
-    var ds_name = month + '_' + year;
+EV1_Month_Comparator.prototype.timeseriesParseData = function ( ds_name ) {
 
-    if ( typeof(self.tool.timeseries.datasets[ds_name] ) == "undefined") {
+    var self = this;
+    var datasets = self.tool.chart.timeseries.datasets;
+    var ds = datasets[ds_name], id = self.tool.domID;
 
-        console.log("Month:" + month + "Year: " + year + "Station: " + station + "  Observation: " + observation);
+    // is there data?
 
-        var station = $("#" +  id + "-ctrl-dropdown-station").val(),
-            observation = $("#" +  id + "-ctrl-dropdown-observation").val(),
-            event_time,
-            nextDate = new Date(year, month, 1),
-            nextMonth = nextDate.getMonth() + 1;
+    if( typeof(ds)==="undefined"){
+        return;
+    }
+    if( ds.data.length > 0 ){
 
-        if (nextMonth < 10) { nextMonth = "0" + nextMonth; }
+        var colY = ds.colY,
+            colX = "date_time";
 
-        // event_time = "eventtime=" + year + "-" + month + "-01T00:00Z/" + nextDate.getFullYear() + "-" + nextMonth + "-01T00:00Z";
+        var parse = d3.time.format("%Y-%m-%dT%H:%M:%SZ").parse,
+            month_format = d3.time.format("%B - %Y"),
+            end_month, end_year;
 
-        var request_url = self.sos.requestUrlTimeseriesDate(
-            station,
-            observation,
-            {
-                dateStart:year + "-" + month + "-01",
-                dateEnd:nextDate.getFullYear() + "-" + nextMonth + "-01"
-            }
-        )
-
-        // var request_url = "http://epe.marine.rutgers.edu/visualization/" + "proxy_ndbc.php?" + url;
-
-        console.log("CSV Via Proxy: " + request_url);
-
-        // request CSV data, send response to callback function
-        d3.csv(request_url, function (ts_data) {
-
-            // todo:check length here to report empty dataset?
-
-            self.tool.timeseries.datasets[ds_name] = {
-                data:ts_data,
-                observation:observation,
-                colY:self.parameters[observation].column,
-                month:month,
-                station:station,
-                year:year,
-                color:color,
-                visibility:1,
-                config:year + "-" + month + "|1|" + color,
-                isDrawReady:false
-                //todo: get reference to observation
-            };
-
-            self.timeseriesParseData(ds_name);
-
-            self.tool.configuration.custom.months += "\n" + year + "-" + month + "|1|" + color;
+        // parse date and convert csv source to numerical values
+        ds.data.forEach(function (d) {
+            d[colX] = parse(d[colX]);
+            d[colY] = +d[colY];
         });
-    }
-    else {
-        alert("This dataset was previously requested. Select a new Month and Year.")
 
-        $("#"+ id + "-csv_loading").hide();
-        $("#"+ id + "-img_loading_data").hide();
+        // find min and max dates
+        var ts_min_date = d3.min(ds.data, function (d) {return d[colX];});
+        var ts_max_date = d3.max(ds.data, function (d) {return d[colX];});
+
+        // adjust end date for timeseries request to include the entire day
+        if ( ts_min_date.getMonth() == 12 ) {
+            end_month = 1;
+            end_year = ts_min_date.getFullYear() + 1;
+        }
+        else {
+            end_month = ts_min_date.getMonth() + 1;
+            end_year = ts_min_date.getFullYear();
+        }
+
+        // set mean and standard deviation of data
+        ds.mean = ( d3.sum(ds.data, function (d) { return d[colY];}) / ds.data.length);
+        ds.stdev = ( d3.values( ds.data ).stdev( colY ) );
+
+        // calculate various date properties
+        ds.dates = {
+            "month":month_format(ts_min_date),
+            "range_begin":new Date(ts_min_date.getFullYear(), ts_max_date.getMonth(), 1),
+            "range_end":new Date(end_year, end_month, 1),
+            "month_days":new Date(ts_min_date.getFullYear(), ts_min_date.getMonth() + 1, 0).getDate()
+        };
+
+        ds.isDrawReady = true;
+        ds.hasData = true;
+
+        // if dataset is set to visible, add it
+        if ( ds.isVisible ) {
+
+            // update chart extents
+            // todo: check if this is even necessary at this point.. since we're not drawing it yet
+            self.updateExtentsY(
+                d3.min( ds.data, function ( d ) { return d[ colY ]; }),
+                d3.max( ds.data, function ( d ) { return d[ colY ]; })
+            );
+        }
+
+        self.timeseriesAdd( ds_name );
+        // replaced with refresh
+        //self.legendAdd( ds_name );
 
     }
-}
+
+    self.legendRefresh();
+
+};
 
 EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
 
     var self = this,
-        ds = self.tool.timeseries.datasets[ds_name],
-        extents = self.tool.timeseries.extents,
-        g = self.tool.layout.graph,
-        c = self.tool.layout.container,
+        ds = self.tool.chart.timeseries.datasets[ds_name],
+        extents = self.tool.chart.timeseries.extents,
+        g = self.tool.layout.chart,
         layout = self.tool.layout,
         data = ds.data,
         dates = ds.dates,
         mean = ds.mean,
         colX = "date_time",
         colY = ds.colY,
-        tooltip = self.tool.graph.tooltip,
-        line_y = self.tool.graph.timeseries.y,
-        line_x = self.tool.graph.timeseries.x,
-        units = self.parameters[ds.observation].units,
-        id = self.tool.domID;
+        tooltip = self.tool.chart.tooltip,
+        units = self.observations[ds.observation].units,
+        id = self.tool.domID,
+        config = self.tool.configuration.custom,
+        scaled_width = ( (layout.chart.width-100) / 31) * dates.month_days,
+        line_x = d3.time.scale().range( [ 0, scaled_width ] ).domain( [ dates.range_begin, dates.range_end ]),
+        line_y = self.tool.chart.timeseries.y;
 
-    var scaled_width = ( layout.graph.width / 31) * dates.month_days;
-
-    var line_x = d3.time.scale().range([g.margin.left, scaled_width]).domain([dates.range_begin, dates.range_end]);
 
     // update extents for y
-    line_y.domain(self.bufferData([extents.y.min, extents.y.max]));
+    line_y.domain( self.bufferData( [ extents.y.min, extents.y.max ] ) );
 
     var line = d3.svg.line()
         //.interpolate("monotone")
-        .x(function (d) {
-            return line_x(d[colX]);
-        })
-        .y(function (d) {
-            return line_y(d[colY]);
-        })
+        .x(function (d) {return line_x(d[colX]);})
+        .y(function (d) {return line_y(d[colY]);});
+
+    var meanline = d3.svg.line()
+        //.interpolate("monotone")
+        .x(function (d) {return line_x(d[colX]);})
+        .y(function () {return line_y( mean );});
+
+    console.log("SVG MEAN LINE: " + ds_name);
 
     var svg_container = d3.select("#" +  id + "-timeseries-g")
+        .append("svg:g")
+        .style("display", ds.isVisible ? "block":"none")
+        .attr("id", id + "-svg-g-" + ds_name);
+
+    svg_container
         .append("svg:path")
-        .attr("transform", "translate(" + 0 + "," + g.margin.top + ")")
         .attr("id",  id + "-svg_" + ds_name)
         .attr("class", "svg_timeseries")
-        .attr("d", line(data))
+        .attr("d", line( data ) )
         .style("stroke", ds.color)
         .style("fill", "none")
-        .on("mouseover", function () {
-            return tooltip.style("visibility", "visible")
-                .text(dates.month)
+        .on( "mouseover", function () {
+            return tooltip.style( "visibility", "visible" )
+                .text( dates.month )
                 .style('background-color', '#FFFFFF')
                 .style("padding", "3px")
                 .style("border", "1px solid #333333");
@@ -792,20 +924,75 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
                 .style("left", (d3.event.pageX + 10) + "px");
         })
         .on("mouseout", function () {
-            return tooltip.style("visibility", "hidden");
+            return tooltip.style( "visibility", "hidden" );
+        });
+
+    //todo: move meanline paths to a shared svg g.. toggle g for mean lines
+    var lineMean = svg_container
+        .append("svg:g")
+        .attr("id",id + "-svg-mean-"+ ds_name);
+
+    lineMean.append("svg:path")
+        .attr("id",  id + "-svgmean-blank-" + ds_name)
+        .attr("class", "svg_mean")
+        .attr( "d", meanline( data ) )
+        .style( "stroke", "#fff" )
+        .style( "stroke-width", 3 )
+        .style( "visibility", config.mean_lines)
+        .on( "mouseover", function ( ) {
+            return tooltip
+                .style("visibility", "visible")
+                .style('background-color', '#FFFFFF')
+                .style("padding", "3px")
+                .style("border", "1px solid #333333")
+                .html( dates.month + " mean: <b>" + self.tool.chart.formats.d_format( mean ) + units + "</b>");
+
+        })
+        .on( "mousemove", function ( ) {
+            return tooltip
+                .style( "top", ( d3.event.pageY - 10 ) + "px" )
+                .style("left", ( d3.event.pageX + 10 ) + "px" );
+        })
+        .on( "mouseout", function ( ) {
+            return tooltip.style( "visibility", "hidden" );
+        });
+
+    lineMean.append("svg:path")
+        .attr("id",  id + "-svgmean_" + ds_name)
+        .attr("class", "svg_mean")
+        .attr( "d", meanline( data ) )
+        .style( "stroke", ds.color )
+        .style( "stroke-width", 2 )
+        .style( "stroke-dasharray", "9, 5" )
+        .style( "visibility", config.mean_lines)
+        .on( "mouseover", function ( ) {
+            return tooltip
+                .style("visibility", "visible")
+                .style('background-color', '#FFFFFF')
+                .style("padding", "3px")
+                .style("border", "1px solid #333333")
+                .html( dates.month + " mean: <b>" + self.tool.chart.formats.d_format( mean ) + units + "</b>");
+
+        })
+        .on( "mousemove", function ( ) {
+            return tooltip
+                .style( "top", ( d3.event.pageY - 10 ) + "px" )
+                .style("left", ( d3.event.pageX + 10 ) + "px" );
+        })
+        .on( "mouseout", function ( ) {
+            return tooltip.style( "visibility", "hidden" );
         });
 
     var date_format = d3.time.format("%m/%d/%Y-%H:%M");
 
-    var tooltips = d3.select("#" + id + "-timeseries-g")
+    self.tool.chart.tooltips = svg_container
         .append("svg:g")
-        .attr("transform", "translate(" + 0 + "," + g.margin.top + ")")
-        .attr("id",  id + "-svg_circles_" + ds_name)
-        .selectAll("circle.area")
-        .data(data)
+        .attr("id",  id + "-svg_circles_" + ds_name )
+        .selectAll( "circle.area" )
+        .data( data )
         .enter()
-        .append("circle")
-        .attr("class", "area circle_" + ds_name)
+        .append ("circle" )
+        .attr( "class", "area circle_" + ds_name )
         .attr("title", function (d) {
             return d[colY];
         })
@@ -821,7 +1008,7 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
         .style("stroke-width", 2)
         .on("mouseover", function (d) {
             return tooltip.style("visibility", "visible")
-                .html(date_format(d[colX]) + " - <b>" + self.tool.graph.d_format(d[colY]) + units + "</b>")
+                .html(date_format(d[colX]) + " - <b>" + self.tool.chart.formats.d_format(d[colY]) + units + "</b>")
                 .style('background-color', '#FFFFFF')
                 .style("padding", "3px")
                 .style("border", "1px solid #333333");
@@ -839,141 +1026,389 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
 
     ds.isGraphed = true;
 
-    var meanline = d3.svg.line()
-        //.interpolate("monotone")
-        .x(function (d) {
-            return line_x(d[colX]);
-        })
-        .y(function (d) {
-            return line_y(mean);
-        })
-
-    console.log("SVG MEAN LINE: " + ds_name)
-
-    var lineMean = d3.select("#" + id + "-timeseries-g")
-        .append("svg:path")
-        .attr("id",  id + "-svgmean_" + ds_name)
-        .attr("class", "svg_mean")
-        .attr("transform", "translate(" + (0) + "," + (g.margin.top) + ")")
-        .attr("d", meanline(data))
-        .style("stroke", ds.color)
-        .style("stroke-dasharray", "9, 5")
-        .on("mouseover", function () {
-            return tooltip.style("visibility", "visible")
-                .html(dates.month + " mean: <b>" + self.tool.graph.d_format(mean) + units + "</b>")
-                .style('background-color', '#FFFFFF')
-                .style("padding", "3px")
-                .style("border", "1px solid #333333");
-        })
-        .on("mousemove", function () {
-            return tooltip.style("top", (d3.event.pageY - 10) + "px")
-                .style("left", (d3.event.pageX + 10) + "px");
-        })
-        .on("mouseout", function () {
-            return tooltip.style("visibility", "hidden");
-        });
-
-    self.legendAdd(ds_name);
-
-    self.redrawY();
+    self.redrawY( );
 
     $("#"+ id + "-img_loading_data").hide();
 
-}
+};
+
+// LEGEND
+
+EV1_Month_Comparator.prototype.legendRefresh = function ( ) {
+
+    var self = this,
+        datasets = self.tool.chart.timeseries.datasets,id = self.tool.domID;
+
+    $("#" + id + " .monthy-stats").remove();
+
+    $.each( datasets, function ( ds_name, ds ) {
+
+        var d_mean = "---",
+            d_stdev = "---",
+            color = ds.color;
+
+        if(ds.hasData){
+
+            d_mean = self.tool.chart.formats.d_format( ds.mean );
+            d_stdev = self.tool.chart.formats.d_format( ds.stdev );
+        }
+
+        $("#"+ id + "-legend-stats").append(
+
+            $("<div></div>")
+                .attr("id",  id + "-stats_legend_" + ds_name)
+                .addClass("monthy-stats row-fluid hover-pointer")
+                .on("click", function () {
+
+                    if (ds.isVisible){
+
+                        // dataset is visible.. now hide the svg group and remove fill of legend svg circle
+
+                        $( "#" + id + "-svg-g-" + ds_name).css( "display", "none" );
+                        $( "#" + id + "-svg_legend_toggle_" + ds_name).attr( "fill", "none" );
+
+                        ds.isVisible = false;
+
+                    }
+                    else {
+                        //dataset is hidden.. now display svg group and fill the legend svg circle
+
+                        $( "#" + id + "-svg-g-" + ds_name).css( "display", "block" );
+                        $( "#" + id + "-svg_legend_toggle_" + ds_name).attr( "fill", color );
+
+                        ds.isVisible = true;
+                    }
+
+                    self.redrawY();
+
+                })
+                .append( $("<div></div>").addClass( "span2" ).attr( "id", id + "-stats_svg_" + ds_name ) )
+                .append( $("<div></div>").addClass( "span4 monthYear" ).html( ds_name.replace("_", " - ") ) )
+                .append( $("<div></div>").addClass( "span2 mean" ).html( d_mean ) )
+                .append( $("<div></div>").addClass( "span2 stdev" ).html( d_stdev ) )
+                .append( $("<div></div>").addClass( "span2" )
+                .append(
+                $("<i></i>")
+                    .addClass("icon icon-trash hover-cursor-crossout")
+                    .attr("title","Click trash can to remove month")
+                    .on("click",
+                    function(evt){
+                        // do not let other events trigger
+                        evt.stopPropagation();
+                        self.removeDataset(ds_name);
+                    }
+                )
+            )
+            )
+        );
+
+        if (ds.hasData){
+
+            d3.select("#"+ id + "-stats_svg_" + ds_name )
+                .append( "svg" )
+                .attr( "width", "20" )
+                .attr( "height", "20" )
+                .append( "circle" )
+                .attr( "id", id + "-svg_legend_toggle_" + ds_name )
+                .attr( "cx", 10 )
+                .attr( "cy", 8 )
+                .attr( "r", 6 )
+                .attr( "stroke", color )
+                .attr( "stroke-width", "2" )
+                .attr( "fill", ds.isVisible ? color : "none" );
+
+        }
+        else{
+
+            $("#"+ id + "-stats_svg_" + ds_name).html("NA");
+            $("#" + id + "-stats_legend_" + ds_name).unbind('click');
+        }
+
+    });
+
+    self.legendUpdate();
+
+};
+
+EV1_Month_Comparator.prototype.legendUpdate = function ( sortToggle ) {
+    var self = this,
+        id = self.tool.domID,
+        legendSorting = self.tool.chart.options.legendSorting,
+        statsDivId = id + "-stats_legend_",
+        month_years = [];
+
+    $('div[id^="'+statsDivId+'"]').each( function( i, el ){
+
+            var elementId = el.getAttribute("id"),
+                month_year_str = elementId.substring( elementId.lastIndexOf( "_" ) - 4);
+
+            month_years[i] = month_year_str.split("_");
+        }
+    );
+
+    // is this a resorting from click of month header? if so, toggle sorting
+    if( typeof( sortToggle ) !== "undefined" ){
+
+        console.log("toggled??? " + legendSorting);
+
+        legendSorting = (legendSorting == "ascending" ? "descending" : "ascending");
+        console.log("toggled!!! " + legendSorting);
+    }
+
+    if ( legendSorting == "ascending") {
+        month_years.sort( );
+        console.log("sorting ascending");
+        console.log("month years ascending", month_years);
+
+    }
+    else {
+        month_years.sort(  );
+        console.log("sorting descending");
+        console.log("month years descending", month_years);
+    }
+
+    for(var x = 0; x < month_years.length; x++){
+
+        month_year = month_years[x][0]+"_"+month_years[x][1];
+
+        $("#" + id + "-legend-stats").first().append(
+            $("#" + statsDivId + month_year)
+            //    .css("background-color","yellow")
+        );
+
+    }
+};
+
+// relculation and redraw
+EV1_Month_Comparator.prototype.recalculateExtents = function(){
+
+    var self = this,
+        datasets = self.tool.chart.timeseries.datasets,
+        extents = self.tool.chart.timeseries.extents;
+
+    extents.y = {};
+
+    for ( var dataset in datasets ) {
+
+        var colY = datasets[dataset].colY;
+
+        if( datasets[dataset].isVisible && datasets[dataset].hasData) {
+
+            console.log("only updating extent for dataset: ", dataset);
+
+            self.updateExtentsY(
+                d3.min( datasets[dataset].data, function ( d ) { return d[ colY ]; }),
+                d3.max( datasets[dataset].data, function ( d ) { return d[ colY ]; })
+            );
+        }
+    }
+};
+
+EV1_Month_Comparator.prototype.updateExtentsY = function( yMin, yMax){
+
+    var self = this, extents = self.tool.chart.timeseries.extents;
+
+    if (typeof (extents.y.min) === "undefined") {
+        extents.y.min = yMin;
+        extents.y.max = yMax;
+    }
+
+    else {
+        if ( yMin < extents.y.min ) {
+            extents.y.min = yMin;
+        }
+        if ( yMax > extents.y.max ) {
+            extents.y.max = yMax;
+        }
+    }
+};
 
 EV1_Month_Comparator.prototype.redrawY = function () {
 
     var self = this;
 
-    var g = self.tool.layout.graph,
-        c = self.tool.layout.container,
-        e = self.tool.timeseries.extents,
-        count = 0,
-        datasets = self.tool.timeseries.datasets,
+    var g = self.tool.layout.chart,
+        extents = self.tool.chart.timeseries.extents,
+        datasets = self.tool.chart.timeseries.datasets,
         colX = "date_time", yAxis,
-        id = self.tool.domID;
+        id = self.tool.domID,
+        config = self.tool.configuration.custom;
 
     //update y axis using global y scale
+    self.recalculateExtents();
 
-    for (var dataset in datasets) {
+    for (var ds_name in datasets) {
 
-        var dset = datasets[dataset];
+        var ds = datasets[ds_name];
 
-        if (dset.isDrawReady) {
+        if ( ds.isDrawReady && ds.isVisible) { //&& dset.isVisible
 
-            console.log("dataset")
-            console.log(dataset);
+            console.log("dataset",ds_name, "is visible", ds.isVisible);
 
-            count++;
+            var line_y = self.tool.chart.timeseries.y,
+                colY = ds.colY;
 
-            var line_y = self.tool.graph.timeseries.y;
+            var scaled_width = ( ( g.width - 100 ) / 31) * ds.dates.month_days;
 
-            colY = dset.colY;
-
-            var scaled_width = ( g.width / 31) * dset.dates.month_days;
-
-            var line_x = d3.time.scale().range([g.margin.left, scaled_width]).domain([dset.dates.range_begin, dset.dates.range_end]);
+            //var line_x = d3.time.scale().range([g.margin.left, scaled_width]).domain([dset.dates.range_begin, dset.dates.range_end]);
+            var line_x = d3.time.scale()
+                .range( [0, scaled_width])
+                .domain( [ds.dates.range_begin, ds.dates.range_end] );
 
             // update domain for current line with min and max across datasets
-            line_y.domain(self.bufferData([e.y.min, e.y.max]));
+            line_y.domain( self.bufferData( [ extents.y.min, extents.y.max ] ) );
 
             // line to transition to
             var newline = d3.svg.line()
                 // .interpolate("monotone")
                 .x(function (d) {
-                    return line_x(d[colX]);
+                    return line_x( d[ colX ] );
                 })
                 .y(function (d) {
-                    return line_y(d[colY]);
-                })
+                    return line_y( d[ colY ] );
+                });
 
             var meanline = d3.svg.line()
                 .x(function (d) {
-                    return line_x(d[colX]);
+                    return line_x( d[colX] );
                 })
-                .y(function (d) {
-                    return line_y(dset.mean);
-                })
+                .y(function () {
+                    return line_y( ds.mean );
+                });
 
-            // xtransition lines
-            var newpath = d3.selectAll("#" +  id + "-svg_" + dataset)
+            // transition lines
+            var newpath = d3.selectAll("#" +  id + "-svg_" + ds_name)
                 .transition()
-                // .duration(750)
-                .attr("d", newline(dset.data));
+                .duration(750)
+                .attr("d", newline( ds.data ));
+
 
             // only transition Y!!!
-            var newcircles = d3.selectAll(".circle_" + dataset)
-                .data(dset.data)
+            var newcircles = d3.selectAll("#" + id + " .circle_" + ds_name)
+                .data( ds.data )
                 .transition()
                 .duration(750)
                 .attr("cy", function (d) {
-                    return line_y(d[colY]);
-                })
+                    return line_y( d[colY] );
+                });
 
             // new mean line..
-            var newmeanlines = d3.selectAll("#" +  id + "-svgmean_" + dataset)
-                .data(dset.data)
+            var newmeanlines = d3.selectAll("#" +  id + "-svgmean_" + ds_name)
+                .style( "visibility", config.mean_lines )
+                .data( ds.data )
                 .transition()
                 .duration(750)
-                .attr("d", meanline(dset.data));
+                .attr("d", meanline(ds.data));
 
-            yAxis = d3.svg.axis().scale(line_y).ticks(8).tickSubdivide(true).orient("left");
+            var newmeanlines2 = d3.selectAll("#" +  id + "-svgmean-blank-" + ds_name)
+                .style( "visibility", config.mean_lines )
+                .data( ds.data )
+                .transition()
+                .duration(750)
+                .attr("d", meanline( ds.data ));
 
-            $("#"+ id + "dynamic_y").remove();
+            yAxis = d3.svg.axis( )
+                .scale( line_y )
+                .ticks( 8 )
+                .tickFormat(d3.format("0.0") )
+                .tickSubdivide( true )
+                .orient( "left" );
 
-            var svg_c = d3.select("#" + id + "-svg-main")
-                .append("svg:g")
-                .attr("id",  id + "dynamic_y")
-                .attr("class", "y axis")
-                //.attr("clip-path", "url(#clip)")
-                .call(yAxis)
+            d3.select("#" + id + "-dynamic_y")
+                .transition()
+                .duration(750)
+                .call( yAxis )
                 .attr("fill", "none")
                 .attr("stroke", "#000000")
-                .attr("shape-rendering", "crispEdges")
-                .attr("transform", "translate(" + (g.margin.left + c.margin.left) + "," + (g.margin.top) + ")")
+                .attr("shape-rendering", "crispEdges");
         }
     }
-}
+};
+
+EV1_Month_Comparator.prototype.toggleMeanLines = function ( ) {
+    var self = this,
+        datasets = self.tool.chart.timeseries.datasets,
+        id = self.tool.domID
+
+    if ( $('#' +  id + '-ctrl-checkbox-mean-lines').is(':checked')) {
+        for( var ds_name in datasets ){
+                $("#" + id + "-svgmean_" + ds_name).css( "visibility", "visible");
+                $("#" + id + "-svgmean-blank-" + ds_name).css( "visibility", "visible");
+        }
+    }
+    else {
+        for( var ds_name in datasets ){
+                $("#" + id + "-svgmean_" + ds_name).css( "visibility", "hidden");
+                $("#" + id + "-svgmean-blank-" + ds_name).css( "visibility", "hidden");
+        }
+    }
+};
+
+// REQUESTS
+EV1_Month_Comparator.prototype.requestData = function (month,year,color) {
+
+    console.log("Loading CSV....");
+
+    var self = this,
+        id = self.tool.domID;
+
+    $("#"+ id + "-img_loading_data").show();
+
+    var ds_name = year + '_' + month;
+
+    if ( typeof(self.tool.chart.timeseries.datasets[ds_name] ) == "undefined") {
+
+        var station = $("#" +  id + "-ctrl-dropdown-station").val(),
+            observation = $("#" +  id + "-ctrl-dropdown-observation").val(),
+            nextDate = new Date(year, month, 1),
+            nextMonth = nextDate.getMonth() + 1;
+
+        //CONSOLE LOG//console.log("Month:" + month + "Year: " + year + "Station: " + station + "  Observation: " + observation);
+
+        if (nextMonth < 10) { nextMonth = "0" + nextMonth; }
+
+        var request_url = self.sos.requestUrlTimeseriesDate(
+            station,
+            observation,
+            {
+                dateStart:year + "-" + month + "-01",
+                dateEnd:nextDate.getFullYear() + "-" + nextMonth + "-01"
+            }
+        );
+
+        //CONSOLE LOG/console.log("CSV Via Proxy: " + request_url);
+
+        // request CSV data, send response to callback function
+        d3.csv(request_url, function (ts_data) {
+
+            // todo:check length here to report empty dataset?
+
+            self.tool.chart.timeseries.datasets[ds_name] = {
+                data        : ts_data,
+                observation : observation,
+                colY        : self.observations[observation].column,
+                month       : month,
+                station     : station,
+                year        : year,
+                color       : color,
+                isDrawReady : false,
+                isVisible   : true,
+                hasData     : false
+                //todo: get reference to observation
+            };
+
+            self.timeseriesParseData( ds_name );
+
+        });
+    }
+    else {
+        alert("This month is already in your list. Please choose another Month and/or year.");
+
+        $("#"+ id + "-csv_loading").hide();
+        $("#"+ id + "-img_loading_data").hide();
+    }
+};
+
 
 EV1_Month_Comparator.prototype.bufferData = function (d) {
 
@@ -981,323 +1416,108 @@ EV1_Month_Comparator.prototype.bufferData = function (d) {
     var buffer = (max - min) * 0.05;
     //CONSOLE LOG//console.log(min + "--" + max + " buffer:" + buffer)
     return [min - buffer, max + buffer];
-}
+};
 
-EV1_Month_Comparator.prototype.timeseriesParseData = function ( ds_name ) {
-
-    var self = this;
-    var datasets = self.tool.timeseries.datasets;
-    var ds = datasets[ds_name], color = ds.color, id = self.tool.domID;
-
-    // check to see if there is any data, besides headers.. -> empty dataset
-    if (ds.data.length == 0) {
-
-        self.legendAddEmptyDataset(ds_name);
-
-    }
-    else {
-
-        var colY = ds.colY,
-            colX = "date_time",
-            extents = self.tool.timeseries.extents;
-
-        var parse = d3.time.format("%Y-%m-%dT%H:%M:%SZ").parse,
-            month_format = d3.time.format("%B - %Y"),
-            end_month, end_year;
-
-        // parse date and convert csv source to numerical values
-        ds.data.forEach(function (d) {
-            d[colX] = parse(d[colX]);
-            d[colY] = +d[colY];
-        });
-
-        var ts_min = d3.min(ds.data, function (d) {
-            return d[colY];
-        });
-        var ts_max = d3.max(ds.data, function (d) {
-            return d[colY];
-        });
-
-        var ts_min_date = d3.min(ds.data, function (d) {
-            return d[colX];
-        });
-        var ts_max_date = d3.max(ds.data, function (d) {
-            return d[colX];
-        });
-
-        if (typeof (extents.y.min) === "undefined") {
-            extents.y.min = ts_min;
-            extents.y.max = ts_max;
-            //extents.x.min = ts_min_date;
-            //extents.x.max = ts_max_date;
-        }
-        else {
-            console.log("calculating extent")
-            if (ts_min < extents.y.min) {
-                extents.y.min = ts_min;
-            }
-            if (ts_max > extents.y.max) {
-                extents.y.max = ts_max;
-            }
-        }
-
-        // find min and max for x and y colums
-        var //minX = extents.x.min,
-        //maxX = extents.x.max,
-            minY = extents.y.min,
-            maxY = extents.y.max;
-
-        // adjust end date for timeseries requesting.
-        switch (ts_min_date.getMonth()) {
-            case 12:
-                end_month = 1;
-                end_year = ts_min_date.getFullYear() + 1;
-                break;
-
-            default:
-                end_month = ts_min_date.getMonth() + 1;
-                end_year = ts_min_date.getFullYear();
-        }
-
-        ds.isDrawReady = true;
-        ds.mean = ( d3.sum(ds.data, function (d) {
-            return d[colY];
-        }) / ds.data.length);
-        ds.stdev = ( d3.values(ds.data).stdev(colY) );
-        ds.dates = {
-            "month":month_format(ts_min_date),
-            "range_begin":new Date(ts_min_date.getFullYear(), ts_max_date.getMonth(), 1),
-            "range_end":new Date(end_year, end_month, 1),
-            "month_days":new Date(ts_min_date.getFullYear(), ts_min_date.getMonth() + 1, 0).getDate()
-        };
-
-        self.timeseriesAdd(ds_name);
-
-    }
-
-    // hide loading image
-    $("#"+ id + "-csv_loading").hide();
-
-}
-
-EV1_Month_Comparator.prototype.legendAdd = function (ds_name) {
-
-    var self = this,
-        dataset = self.tool.timeseries.datasets[ds_name],
-        dstats, legend_header, tbl, color = dataset.color,
-        id = self.tool.domID;
-
-
-    if ($("#"+ id + "-legend-stats").length == 0) {
-
-        legend_header = $("<div></div>")
-            .attr("id",  id + "-legend-stats")
-            .addClass("container-fluid")
-            .append(
-            $("<div></div>")
-                .addClass("row-fluid")
-                .append($("<div></div>").addClass("span2").css("font-weight", "bold").html("&nbsp;&nbsp"))
-                .append($("<div></div>").addClass("span4").css("font-weight", "bold").html("MONTH"))
-                .append($("<div></div>").addClass("span3").css("font-weight", "bold").html("AVG"))
-                .append($("<div></div>").addClass("span3").css("font-weight", "bold").html("STDV"))
-        )
-
-        $("#" + id + "-legend").append(legend_header)
-
-    }
-
-    var d_mean = self.tool.graph.d_format(dataset.mean),
-        d_stdev = self.tool.graph.d_format(dataset.stdev);
-
-    $("#"+ id + "-legend-stats").append(
-
-
-        $("<div></div>")
-            .attr("id",  id + "-stats_" + ds_name)
-            .addClass("row-fluid")
-            .on("click", function (a) {
-
-                if ($("#"+ id + "-svg_" + ds_name).css("visibility") == "hidden") {
-
-                    $("#"+ id + "-svg_" + ds_name).css("visibility", "visible")
-                    $("#"+ id + "-svgmean_" + ds_name).css("visibility", "visible");
-                    $("#"+ id + "-svg_circles_" + ds_name).css("visibility", "visible");
-                    $("#"+ id + "-svg_legend_toggle_" + ds_name).attr("fill", color)
-                }
-                else {
-                    $("#"+ id + "-svg_" + ds_name).css("visibility", "hidden")
-                    $("#"+ id + "-svgmean_" + ds_name).css("visibility", "hidden");
-                    $("#"+ id + "-svg_circles_" + ds_name).css("visibility", "hidden");
-                    $("#"+ id + "-svg_legend_toggle_" + ds_name).attr("fill", "none")
-                }
-
-            })
-            .append($("<div></div>").addClass("span2").attr("id", id + "-stats_svg_" + ds_name))
-            .append($("<div></div>").addClass("span4").html(ds_name.replace("_", "/")))
-            .append($("<div></div>").addClass("span3").html(d_mean))
-            .append($("<div></div>").addClass("span3").html(d_stdev))
-    )
-
-
-    d3.select("#"+ id + "-stats_svg_" + ds_name)
-        .append("svg")
-        .attr("width", "20")
-        .attr("height", "20")
-        .append("circle")
-        .attr("id", id + "-svg_legend_toggle_" + ds_name)
-        .attr("cx", 10)
-        .attr("cy", 8)
-        .attr("r", 6)
-        .attr("stroke", color)
-        .attr("stroke-width", "2")
-        .attr("fill", color);
-
-
-    // alert($("#add-month-div").top)
-    //$("#"+ id + "add-month-div").css("top", ( $("#" + id + "add-month-div").offset().top + 20 ) + "px")
-
-}
 
 EV1_Month_Comparator.prototype.updateStationAndObservation = function () {
 
-    var self = this, id = self.tool.domID;
-    var observation = $("#" + id + "-ctrl-dropdown-observation").val();
-    var station = $("#" + id + "-ctrl-dropdown-station").val();
+    var self = this, id = self.tool.domID,
+        observation = $("#" + id + "-ctrl-dropdown-observation").val(),
+        station = $("#" + id + "-ctrl-dropdown-station").val(),
+        datasets = self.tool.chart.timeseries.datasets;
 
-    // create new dataset requests, maintain color and visibility setting
-
-    var datasets = self.tool.timeseries.datasets;
-
-    self.tool.timeseries.extents = {
+    self.tool.chart.timeseries.extents = {
         x:{},
         y:{}
     };
 
-    for (var dataset in datasets) {
+    for (var ds_name in datasets) {
 
-        var current_property = datasets[dataset].observation,
-            year = datasets[dataset].year,
-            month = datasets[dataset].month,
-            dstmp = month + "_" + year,
+        var year = datasets[ds_name].year,
+            month = datasets[ds_name].month,
             nextDate = new Date(year, month, 1),
             nextMonth = nextDate.getMonth() + 1;
+            //current_property = datasets[ds_name].observation,
 
-        if (nextMonth < 10) {
-            nextMonth = "0" + nextMonth;
-        }
+        if (nextMonth < 10) nextMonth = "0" + nextMonth;
 
         var url = self.sos.requestUrlTimeseriesDate(
             station,
             observation,
             {
                 dateStart:year + "-" + month + "-01",
-                dateEnd:nextDate.getFullYear() + "-" + nextMonth + "-01"
+                dateEnd:nextDate.getFullYear( ) + "-" + nextMonth + "-01"
             }
-        )
+        );
 
         // set all dataset properties
-        datasets[dataset].colY = self.parameters[observation].column;
-        datasets[dataset].url = url;
-        datasets[dataset].isDrawReady = false;
-        datasets[dataset].data = null;
-        datasets[dataset].observation = observation;
+        datasets[ds_name].colY = self.observations[observation].column;
+        datasets[ds_name].url = url;
+        datasets[ds_name].isDrawReady = false;
+        datasets[ds_name].hasData = false;
+        datasets[ds_name].data = null;
+        datasets[ds_name].observation = observation;
 
         // remove all svg and legend items for this dataset
-        d3.selectAll("#" + id + "-svg_circles_" + dataset).remove();
-        d3.selectAll("#" + id + "-svgmean_" + dataset).remove();
-        d3.selectAll("#" + id + "-svg_" + dataset).remove();
-        d3.select("#" + id + "-stats_" + dataset).remove();
+        d3.select("#" + id + "-svg-g-" + ds_name).remove();
 
-        d3.select("#" + id + "graph-y-axis-label").text(self.parameters[observation].label);
-        d3.select("#" + id + "graph-title").text(self.parameters[observation].label + " at " + self.stations[station].label);
+        // set the title and the y-axis label
+        d3.select("#" + id + "-chart-label-title").text(self.observations[observation].label + " at " + self.stations[station].label);
+        d3.select("#" + id + "-chart-label-yAxis").text(self.observations[observation].label);
 
-        d3.csv(datasets[dataset].url, function (ts_data) {
+        d3.csv( datasets[ds_name].url, function (ts_data) {
 
-            if(ts_data.length>0)
-            {
+            if (ts_data.length > 0) {
 
                 console.log("TS_DATA",ts_data);
 
                 var datetime = ts_data[0]["date_time"].substring(0, 7),
                     year_month = datetime.split("-"),
-                    ds_name = year_month[1] + "_" + year_month[0];
+                    ds_name = year_month[0] + "_" + year_month[1];
 
                 datasets[ds_name].data = ts_data;
 
-                self.timeseriesParseData(ds_name);
-
             }
-            else{
+            self.timeseriesParseData( ds_name );
 
-                // todo:need reference to dataset name
-                // self.legendAddEmptyDataset(dataset);
-
-            }
+                console.log( "DATASET in CSV response ",ds_name );
         });
     }
-}
-
-EV1_Month_Comparator.prototype.legendAddEmptyDataset = function ( ds_name ) {
-
-    var self = this,
-        ds = self.tool.timeseries.datasets[ds_name],
-        color = ds.color,
-        id = self.tool.domID;
-
-    $("#"+ id + "-legend-stats").append(
-
-        $("<div></div>")
-            .attr("id", id + "-stats_" + ds_name)
-            .addClass("row-fluid")
-            .append(
-            $("<div></div>")
-                .addClass("span2")
-                .attr("id", id + "-stats_svg_" + ds_name)
-        )
-            .append(
-            $("<div></div>")
-                .addClass("span4")
-                .css("text-decoration", "line-through")
-                .html(ds_name.replace("_", "/"))
-        )
-            .append(
-            $("<div></div>")
-                .addClass("span3")
-                .html(" --- ")
-        )
-            .append(
-            $("<div></div>")
-                .addClass("span3")
-                .html(" --- ")
-        )
-    )
-
-    d3.select("#" +  id + "-stats_svg_" + ds_name)
-        .append("svg")
-        .attr("width", "20")
-        .attr("height", "20")
-        .append("circle")
-        .attr("id",  id + "-svg_legend_toggle_" + ds_name)
-        .attr("cx", 10)
-        .attr("cy", 8)
-        .attr("r", 6)
-        .attr("stroke", color)
-        .attr("stroke-width", "2")
-        .attr("fill", "none")
-
-    //    alert("Your request returned an empty dataset. ");
-    //todo: show notification box of empty dataset..
-    //todo: show a strickthrough in legend?
-
 };
 
+EV1_Month_Comparator.prototype.removeDataset = function ( datasetName ){
 
+    var self = this,
+        id = self.tool.domID;
+
+    // remove from legend
+    $("#" + id + "-stats_legend_" + datasetName ).remove();
+
+    // remove all elements from dom.. used array for simple additions
+    [
+        "-svg_",
+        "-svgmean_",
+        "-svgmean-blank-",
+        "-svg_circles_",
+        "-svg_legend_toggle_"
+    ].forEach( function( element ){
+
+        $( "#" + id + element + datasetName ).remove();
+
+    });
+
+    delete datasets[datasetName];
+
+    self.redrawY();
+};
+
+// configuration updates
 EV1_Month_Comparator.prototype.customizationUpdate = function () {
     // this function will update the config file which is used for subsequent calls and lookups
     var self = this, id = self.tool.domID, config = self.tool.configuration.custom;
 
-    config.station = $("#" + id + "-ctrl-dropdown-station").val();
-    config.observation = $("#" + id + "-ctrl-dropdown-observation").val();
-    config.mean_lines = $("#"+ id + "-ctrl-dataset-checkbox-mean_lines").val();
+    config.station = $( "#" + id + "-ctrl-dropdown-station" ).val( );
+    config.observation = $( "#" + id + "-ctrl-dropdown-observation" ).val( );
+    config.mean_lines = $( "#" + id + "-ctrl-checkbox-mean-lines" ).is(":checked") ? "visible" : "hidden";
 
 };

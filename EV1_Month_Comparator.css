@@ -1,25 +1,3 @@
-svg {
-    /* font: 12px sans-serif;*/
-}
-
-.x.axis path {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.axis-right path, .axis-right line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
-.axis-left path, .axis-left line {
-    fill: none;
-    stroke: #000;
-    shape-rendering: crispEdges;
-}
-
 .control {
     margin: 3px;
     padding: 3px;
@@ -41,11 +19,7 @@ svg {
     stroke-width: 3px;
 }
 
-#legend-timeseries-circle {
-    stroke: steelblue;
-}
-
-#focus-g text {
+.focus-g text {
     fill: black;
 }
 
@@ -58,11 +32,47 @@ input, textarea, select, .uneditable-input {
     /*width: auto !important;*/
 }
 
-#legend-stats div {
-    text-align: center
+.legend-stats{
+    padding:0 !important;
+
 }
 
-#legend-stats{
-    max-height:200px;
-    overflow-y:scroll;
+.kill-margin{
+    margin-left:5px !important;
+}
+
+.kill-padding{
+    padding-left:5px !important;
+    padding-right:5px !important;
+}
+
+.zero-padding-margin{
+    padding:0;
+    margin:0;
+}
+
+.legend-stats div {
+    text-align: center;
+
+}
+
+.hover-pointer:hover{
+    cursor:pointer;
+
+}
+
+.widthAuto{
+    width:auto;
+}
+
+.borderRoundedSmall{
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    border-color:#666;
+}
+
+.hover-cursor-crossout:hover {
+    cursor: crosshair;
+    /*url('../../img/cursor-crossout-24.png'),*/
 }
