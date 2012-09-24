@@ -4,8 +4,8 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Mike Mills and Sage Lichtenwalner, Rutgers University
-// Revised 8/24/12
-// Version 0.1.8
+// Revised 9/24/12
+// Version 0.1.9
 
 var EV2_Time_Series_Explorer = function ( domID, customToolConfiguration ) {
 
@@ -186,8 +186,6 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
     }
 
-
-
     var chart_layout = this.chart.layout;
     var container = chart_layout.container;
 
@@ -321,17 +319,15 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
 
 
     // needs references to cols by parameter here
-    this.chart.context.param1.path = d3.svg.line().interpolate("linear").x(function (d) {
-        return self.chart.context.param1.x(d["date_time"]);
-    }).y(function (d) {
-            return self.chart.context.param1.y(d[self.chart.timeseries.datasets.param1.column]);
-        });
+    this.chart.context.param1.path = d3.svg.line()
+        .interpolate("linear")
+        .x(function (d) {return self.chart.context.param1.x(d["date_time"]);})
+        .y(function (d) {return self.chart.context.param1.y(d[self.chart.timeseries.datasets.param1.column]);});
 
-    this.chart.context.param2.path = d3.svg.line().interpolate("linear").x(function (d) {
-        return self.chart.context.param2.x(d["date_time"]);
-    }).y(function (d) {
-            return self.chart.context.param2.y(d[self.chart.timeseries.datasets.param2.column]);
-        });
+    this.chart.context.param2.path = d3.svg.line()
+        .interpolate("linear")
+        .x(function (d) {return self.chart.context.param2.x(d["date_time"]);})
+        .y(function (d) {return self.chart.context.param2.y(d[self.chart.timeseries.datasets.param2.column]);});
 
     this.chart.focus.param1.path = d3.svg.line()
         .interpolate("linear")
@@ -443,7 +439,6 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .text(self.stations[self.tool.configuration.custom.station2].name)
         .attr("x", "315")
         .attr("y", "2")
-
 
     // Y AXIS LABELS
     this.d_label_y_left = this.svg.append("g")
@@ -563,8 +558,6 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
             self.review_data("init");
         }
     });
-
-    //TODO: date and time labeling for focus graph axis
 
     //TODO: body will be replaced controls div id
     var ctrl_dates_btn = $("<a></a>").attr({
@@ -933,7 +926,7 @@ EV2_Time_Series_Explorer.prototype.review_data = function (funct) {
 
         }
     }
-}
+};
 
 EV2_Time_Series_Explorer.prototype.calc_y_extents = function () {
 
@@ -961,7 +954,7 @@ EV2_Time_Series_Explorer.prototype.calc_y_extents = function () {
         max: maxY
     }
 
-}
+};
 
 EV2_Time_Series_Explorer.prototype.calc_x_extents = function () {
 
@@ -988,7 +981,7 @@ EV2_Time_Series_Explorer.prototype.calc_x_extents = function () {
         min: minX,
         max: maxX
     }
-}
+};
 
 EV2_Time_Series_Explorer.prototype.calc_extents = function () {
 
@@ -1001,18 +994,10 @@ EV2_Time_Series_Explorer.prototype.calc_extents = function () {
     console.log("COLUMN 1: " + ds1.column)
     console.log("COLUMN 2: " + ds2.column)
 
-    var xmin = d3.min(ds1.data, function (d) {
-            return d["date_time"];
-        }),
-        xmax = d3.max(ds1.data, function (d) {
-            return d["date_time"];
-        }),
-        ymin = d3.min(ds1.data, function (d) {
-            return d[ds1.column];
-        }),
-        ymax = d3.max(ds1.data, function (d) {
-            return d[ds1.column];
-        })
+    var xmin = d3.min(ds1.data, function (d) { return d["date_time"];}),
+        xmax = d3.max(ds1.data, function (d) {return d["date_time"];}),
+        ymin = d3.min(ds1.data, function (d) {return d[ds1.column];}),
+        ymax = d3.max(ds1.data, function (d) {return d[ds1.column];});
 
     ds1.extents = {
         x: {
@@ -1025,18 +1010,10 @@ EV2_Time_Series_Explorer.prototype.calc_extents = function () {
         }
     }
 
-    xmin = d3.min(ds2.data, function (d) {
-        return d["date_time"];
-    });
-    xmax = d3.max(ds2.data, function (d) {
-        return d["date_time"];
-    });
-    ymin = d3.min(ds2.data, function (d) {
-        return d[ds2.column];
-    });
-    ymax = d3.max(ds2.data, function (d) {
-        return d[ds2.column];
-    });
+    xmin = d3.min(ds2.data, function (d) {return d["date_time"];});
+    xmax = d3.max(ds2.data, function (d) {return d["date_time"];});
+    ymin = d3.min(ds2.data, function (d) {return d[ds2.column];});
+    ymax = d3.max(ds2.data, function (d) {return d[ds2.column];});
 
     ds2.extents = {
         x: {
@@ -1048,7 +1025,7 @@ EV2_Time_Series_Explorer.prototype.calc_extents = function () {
             max: ymax
         }
     }
-}
+};
 
 EV2_Time_Series_Explorer.prototype.add_data = function (param) {
 
@@ -1061,7 +1038,6 @@ EV2_Time_Series_Explorer.prototype.add_data = function (param) {
 
     var colY = dataset.column,
         units = dataset.units;
-
 
     var focus = self.chart.focus[param],
         context = self.chart.context[param],
@@ -1085,14 +1061,13 @@ EV2_Time_Series_Explorer.prototype.add_data = function (param) {
         .style("stroke", (param == "param1") ? "red" : "steelblue")
         .data([data]).attr("d", context.path);
 
-
     self.d_focus.append("svg:g")
         .attr("class", "datapoints-" + param)
         .attr("clip-path", "url(#clip)")
         .selectAll("path").data(data)
         .enter()
         .append("path")
-        .attr("class", "dp-" + (param == "param1") ? "circle" : "triangle")
+        .attr("class", "dp-" + (param == "param1") ? "circle" : "triangle-up")
         .attr("fill", (param == "param1") ? "red" : "steelblue")
         .attr("transform", function (d) {
             return "translate(" + focus.x(d.date_time) + "," + focus.y(d[colY]) + ")";
@@ -1145,7 +1120,8 @@ EV2_Time_Series_Explorer.prototype.add_data = function (param) {
         .call(self.chart.brush)
         .selectAll("rect").attr("y", -6)
         .attr("height", self.chart.layout.context.height + 7);
-}
+
+};
 
 EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
     var self = this;
@@ -1280,7 +1256,7 @@ EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
                 .style("visibility", "hidden");
         });
 
-}
+};
 
 EV2_Time_Series_Explorer.prototype.customization_update = function () {
     // this function will update the config file which is used for subsequent calls and lookups
@@ -1298,7 +1274,7 @@ EV2_Time_Series_Explorer.prototype.customization_update = function () {
 
     //todo: should only update the current parameter, not all
 
-}
+};
 
 EV2_Time_Series_Explorer.prototype.station_toggle = function (element, station) {
 
@@ -1361,7 +1337,7 @@ EV2_Time_Series_Explorer.prototype.station_toggle = function (element, station) 
         }
     }
 
-}
+};
 
 EV2_Time_Series_Explorer.prototype.notify_nodata = function (param) {
 
@@ -1370,8 +1346,7 @@ EV2_Time_Series_Explorer.prototype.notify_nodata = function (param) {
     var self = this;
     var config_custom = self.tool.configuration.custom;
 
-    var num;
-    num = (param == "param1" ? "1" : "2");
+    //var num = (param == "param1" ? "1" : "2");
 
     alert("No data was returned for the Station, Parameter, and Date Range you selected.\n\n" + "Please adjust the Station, Parameters, or Date Range to request new data.");
 
@@ -1379,194 +1354,4 @@ EV2_Time_Series_Explorer.prototype.notify_nodata = function (param) {
     //            "No " + 'self.parameters[config_custom["param"+num]].name' + " data is available for " + self.stations["station"+num].name + "\n for the date range provided.\n\n" +
     //                    "Please adjust the Station, Parameters, or Date Range to request new data."
     //    );
-}
-//
-//EV2_Time_Series_Explorer.prototype.tool_control = function (id, control) {
-//
-//    var self = this;
-//
-//    //    console.log("ID: " + id + "  Control Type: " + control.type);
-//    var ctrl;
-//    switch (control.type) {
-//        case "textbox":
-//
-//            var lbl = $("<label />").attr({
-//                'for': id
-//            }) //'title':control.tooltip
-//                .html(control.description);
-//
-//            var input = document.createElement("input");
-//            $(input).attr({
-//                'id': id,
-//                'type': 'textbox',
-//                'value': control.default_value,
-//                'title': control.tooltip,
-//                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
-//            }).addClass("span2").on("change", function () {
-//                    self.customization_update();
-//                });
-//
-//            ctrl = $("<div></div>")
-//                .addClass("control")
-//                .append(lbl)
-//                .append(input);
-//
-//            break;
-//
-//        case "dropdown":
-//
-//
-//            var lbl = $("<label />").attr({
-//                'for': id,
-//                'title': control.tooltip
-//            }).html(control.description);
-//
-//            // create select element and populate it
-//            var select = $("<select></select>")
-//                //.addClass("span3")
-//                .attr({
-//                    "id": id
-//                }).change(function () {
-//                    self.customization_update();
-//                });
-//
-//            $.each(control.options, function (option) {
-//
-//                $(select).append($('<option></option>')
-//                    .val(control.options[option].value)
-//                    .html(control.options[option].name));
-//            });
-//
-//            select.val(control.default_value);
-//
-//            ctrl = $('<div style="display:inline"></div>').addClass("control");
-//
-//            if (!control.nolabel === "true") ctrl.append(lbl);
-//
-//            ctrl.append(select);
-//
-//            break;
-//
-//        case "checkbox":
-//
-//            var lbl = $("<label />").attr({
-//                'for': id,
-//                'title': control.tooltip
-//            }).html(control.description);
-//
-//            var input = document.createElement("input");
-//            $(input).attr({
-//                'id': id,
-//                'type': 'checkbox',
-//                //'value':control.default_value,
-//                'title': control.tooltip,
-//                'maxlength': typeof (control.maxlength) == "undefined" ? "" : control.maxlength
-//                //'onclick':function(){alert("test");}
-//            });
-//            if (control.selected) $(input).attr({
-//                'checked': 'checked'
-//            })
-//
-//            ctrl = $("<div></div>").addClass("control").append(lbl).append(input);
-//
-//            break;
-//
-//        case "svg":
-//
-//            var ctrl = document.createElement("svg");
-//
-//            break;
-//
-//        case "datepicker":
-//
-//
-//            var el_lbl = $("<label />").attr({
-//                'for': id + "_dp",
-//                'title': control.tooltip
-//            }).html(control.description);
-//
-//            var el_input = $("<input />").attr({
-//                "id": id,
-//                "type": "text"
-//            })
-//                .addClass("datepicker").val(control.default_value).on("change", function () {
-//                    self.customization_update();
-//                });
-//
-//            $(el_input).datepicker({
-//                "dateFormat": "yy-mm-dd",
-//                changeMonth: true,
-//                changeYear: true,
-//                showButtonPanel: true
-//            }).on("changeDate", function (dp) {
-//                    self.customization_update();
-//                });
-//
-//            ctrl = $("<div></div>").addClass("control ctlhandle").append(el_lbl).append(el_input);
-//
-//            break;
-//
-//        case "colorpicker":
-//
-//            // recursive function to call text box and apply color picker on top of it
-//            //control.type="textbox";
-//
-//            //ctrl = self.draw_control(id,control);
-//            //ctrl = self.draw_control(id+"_cp",control);
-//
-//            // find the textbox in the control and init colorpicker
-//            var el_lbl = $("<label />").attr({
-//                'for': id + "_cp",
-//                'title': control.tooltip
-//            }).html(control.description);
-//
-//            var el_input = $("<input />").attr({
-//                "id": id,
-//                "type": "text"
-//            }).addClass("readonly span2").val(control.default_value);
-//
-//            var el_i = $("<i></i>").css("background-color", control.default_value);
-//            var el_span = $("<span></span>").addClass("add-on").append(el_i);
-//
-//            var el_div = $("<div></div>").addClass("input-append color").attr({
-//                "id": id + "_cp",
-//                "data-color": control.default_value,
-//                "data-color-format": "hex"
-//            }).append(el_input).append(el_span)
-//
-//            $(el_div).colorpicker().on("changeColor", function (cp) {
-//                $("#" + id).val(self.current_config[id] = cp.color.toHex())
-//                //self.updateJSON();
-//                self.customization_update();
-//            });
-//
-//            ctrl = $("<div></div>").addClass("control ctlhandle").append(el_lbl).append(el_div);
-//
-//            break;
-//
-//        default:
-//            ctrl = document.createElement("div");
-//            break;
-//
-//        // recursive needs removed when converting bootstrap elements to components
-//        //
-//        // recursive function to call text box and apply date picker on top of it
-//        // 		// change the control type to text box and create textbox control
-//        // 		//control.type = "textbox";
-//        // 		ctrl = self.draw_control(id,control);
-//        // 		//ctrl = self.draw_control(id+"_dp",control);
-//    }
-//
-//    if (control.popover) {
-//        // now attach the popover to the div container for the control
-//        $(ctrl).attr({
-//            'rel': 'popover',
-//            'title': control.label,
-//            'data-content': control.tooltip
-//        }).popover();
-//
-//    }
-//
-//    return ctrl;
-//
-//}
+};
