@@ -109,8 +109,8 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
             "Seawater Salinity":"sea_water_salinity",
             "Seawater Density":"sea_water_density",
             "Volume Scattering":"sci_bb3slo_b470_scaled",
-            "Volume Scattering":"sci_bb3slo_b532_scaled",
-            "Volume Scattering":"sci_bb3slo_b660_scaled",
+            "Volume ScatteringB":"sci_bb3slo_b532_scaled",
+            "Volume ScatteringC":"sci_bb3slo_b660_scaled",
             "CDOM":"sci_bbfl2s_cdom_scaled",
             "Chlorophyll":"sci_bbfl2s_chlor_scaled",
             "Profile ID":"profile_id",
@@ -136,48 +136,48 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
     // tool object to hold various properties and methods
     this.tool = {
-        domID:self.evTool.domToolID(divId),
-        container:{
-            layout:{
-                margin:{top:20, right:0, bottom:0, left:0},
-                width:860,
-                height:570
+        "domID":self.evTool.domToolID(divId),
+        "container":{
+            "layout":{
+                "margin":{"top":20, "right":0, "bottom":0, "left":0},
+                "width":860,
+                "height":570
             }
         },
-        controls:{
-            layout:{
-                margin:{top:10, right:10, bottom:0, left:20},
-                width:420
+        "controls":{
+            "layout":{
+                "margin":{"top":10, "right":10, "bottom":0, "left":20},
+                "width":420
             }
         },
-        chart:{
-            axis:{},
-            layout:{
-                margin:{top:40, right:10, bottom:20, left:60}
+        "chart":{
+            "axis":{},
+            "layout":{
+                "margin":{"top":40, "right":10, "bottom":20, "left":60}
             }
         },
-        map:{
-            layout:{height:270}
+        "map":{
+            "layout":{"height":270}
         },
-        formats:{
-            tooltip_num:d3.format("g"),
-            tooltip_date:d3.time.format("%Y-%m-%d %H:%M %Z"),
-            obsdate: d3.time.format("%Y-%m-%dT%H:%M:%SZ"),
-            dateDisplay: d3.time.format("%Y-%m-%d %H:%M %Z")
+        "formats":{
+            "tooltip_num" : d3.format("g"),
+            "tooltip_date" : d3.time.format("%Y-%m-%d %H:%M %Z"),
+            "obsdate" : d3.time.format("%Y-%m-%dT%H:%M:%SZ"),
+            "dateDisplay" : d3.time.format("%Y-%m-%d %H:%M %Z")
 
         },
-        scales:{
-            datetime:{
-                hours:d3.time.scale().tickFormat("%H:M"),
-                days:d3.time.scale().tickFormat("%d"),
-                months:d3.time.scale().tickFormat("%m/%y")
+        "scales":{
+            "datetime":{
+                "hours":d3.time.scale().tickFormat("%H:M"),
+                "days":d3.time.scale().tickFormat("%d"),
+                "months":d3.time.scale().tickFormat("%m/%y")
             }
         },
-        configuration:{
-            original:self.configuration,
-            custom:self.configuration
+        "configuration":{
+            "original" : self.configuration,
+            "custom" : self.configuration
         },
-        datasets:{}
+        "datasets":{}
     };
 
     this.evTool.configurationParse(self.tool.configuration.custom, customToolConfiguration );
@@ -215,7 +215,10 @@ EV3_Glider_Profile_Explorer.prototype.loadDeferred = function (config_override) 
 
     var self = this;
 
-    // calculate dimensions for the tool
+    // set interface container and get dimensions for layout
+    this.uiToolInterface();
+
+    // calculate dimensions for the remaining tool parts
     this.uiDimensions();
 
     // draw chart
@@ -329,6 +332,23 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
 
 }
 
+
+
+EV3_Glider_Profile_Explorer.prototype.uiToolInterface = function() {
+    "use strict";
+
+    var self = this, id = self.tool.domID;
+
+    self.tool_container = d3.select("#" + id) //"#" + id + "tool")
+        .append("div")
+        .attr("id", id + "-tool-container")
+        .style("margin-left", self.tool.container.layout.margin.left+ "px");
+
+    self.tool.container.layout.width = $("#"+id + "-tool-container").width() - 40;
+    self.tool.controls.layout.width = self.tool.container.layout.width / 2 - 40;
+
+};
+
 EV3_Glider_Profile_Explorer.prototype.uiDimensions = function() {
 
     // do some calculations here for the tool dimensions
@@ -358,15 +378,9 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
         chart = self.tool.chart,
         controls = self.tool.controls,
         config = self.tool.configuration.custom,
-        id = self.tool.domID,
-        chart_title = "";
+        id = self.tool.domID;
 
-    self.tool_container = d3.select("#" + self.tool.domID) //"#" + id + "tool")
-        .append("div")
-        .attr("id", id + "tool-container")
-        .style("margin-left", container.layout.margin.left+ "px")
-
-    self.tool.chart.tooltip = d3.select("#" + id + "tool-container")
+    self.tool.chart.tooltip = d3.select("#" + id + "-tool-container")
         .append("div")
         .attr("id",id + "tooltip-div")
         .style("position", "absolute")
