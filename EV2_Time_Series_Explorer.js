@@ -7,7 +7,7 @@
 // Revised 8/24/12
 // Version 0.1.8
 
-var EV2_Time_Series_Explorer = function ( dom_id, customToolConfiguration ) {
+var EV2_Time_Series_Explorer = function ( domID, customToolConfiguration ) {
 
     var self = this;
     this.evtool = new EVTool();
@@ -51,6 +51,7 @@ var EV2_Time_Series_Explorer = function ( dom_id, customToolConfiguration ) {
     this.stations = {};
 
     this.tool = {
+        domID:self.evtool.domToolID( domID ),
         configuration:{
             custom:self.configuration,
             default:self.configuration
@@ -62,8 +63,9 @@ var EV2_Time_Series_Explorer = function ( dom_id, customToolConfiguration ) {
     this.evtool.configurationParse( self.tool.configuration.custom, customToolConfiguration );
 
     // Identify the DOM element where the Visualization will be placed.
-    if(typeof(dom_id)!="undefined") this.dom_element = dom_id; else this.dom_element = "ev";
+    //if(typeof(domID)!="undefined") this.dom_element = domID; else this.dom_element = "ev";
 
+    this.uiToolInterface();
     // Draw graph
     this.draw();
 
@@ -71,46 +73,13 @@ var EV2_Time_Series_Explorer = function ( dom_id, customToolConfiguration ) {
 
 EV2_Time_Series_Explorer.prototype.loadingDiv = function(){
     // Create a load
-    $('#'+this.dom_element).html('<img id="loading_'+ this.dom_element + '" src=http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
+    $('#'+this.tool.domID).html('<img id="loading_'+ this.tool.domID + '" src=http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
 }
 
+EV2_Time_Series_Explorer.prototype.uiToolInterface = function ( ) {
+    "use strict";
 
-EV2_Time_Series_Explorer.prototype.draw = function () {
-    var self = this;
-
-    var configCustom = self.tool.configuration.custom;
-
-    console.log("DRAW CONFIG:", configCustom)
-
-    $.each(configCustom.station_list.split("\n"), function (index,station) {
-        var parts = station.split("|");
-
-        var station_id = parts[0];
-        var station_name = parts[1];
-
-        self.stations[station_id] = {};
-        self.stations[station_id].name = station_name;
-        self.stations[station_id].label = station_name + " (" + station_id + ")";
-    });
-
-    this.dateFormats = {
-        hours: d3.time.format("%H:M"),
-        days: d3.time.format("%d"),
-        months: d3.time.format("%m/%y"),
-        tooltip: d3.time.format("%Y-%m-%d %H:%M %Z"),
-        context: d3.time.format("%m-%d"),
-        data_source: d3.time.format("%Y-%m-%dT%H:%M:%SZ")
-    }
-
-    this.dateScales = {
-        // ticks(d3.time.minutes, 15)
-        hours: d3.time.scale().tickFormat("%H:M"),
-        days: d3.time.scale().tickFormat("%d"),
-        months: d3.time.scale().tickFormat("%m/%y"),
-        tooltip: d3.time.scale().tickFormat("%Y-%m-%d %H:%M %Z"),
-        context: d3.time.scale().tickFormat("%m-%d")
-
-    }
+    var self = this, id = self.tool.domID;
 
     this.chart = {
         layout: {
@@ -152,6 +121,72 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
             }
         }
     };
+
+    var uiContainer = $("<div></div>")
+        .addClass("container-fluid");
+
+    uiContainer.append(
+        $("<div></div>")
+            .addClass("row-fluid")
+            .append(
+                $("<div></div>").addClass("span12 kill-margin")
+                    .attr("id",id + "-tool-container")
+
+            )
+        );
+
+    // add tool container to obtain  dimensions
+    $("#" + id).append( uiContainer );
+
+    self.chart.layout.container.width = $("#" + id + "-tool-container").width();
+
+
+};
+
+EV2_Time_Series_Explorer.prototype.uiChart = function () {
+    "use strict";
+
+
+};
+
+EV2_Time_Series_Explorer.prototype.draw = function () {
+    var self = this;
+
+    var configCustom = self.tool.configuration.custom, id = self.tool.domID;
+
+    console.log("DRAW CONFIG:", configCustom)
+
+    $.each(configCustom.station_list.split("\n"), function (index,station) {
+        var parts = station.split("|");
+
+        var station_id = parts[0];
+        var station_name = parts[1];
+
+        self.stations[station_id] = {};
+        self.stations[station_id].name = station_name;
+        self.stations[station_id].label = station_name + " (" + station_id + ")";
+    });
+
+    this.dateFormats = {
+        hours: d3.time.format("%H:M"),
+        days: d3.time.format("%d"),
+        months: d3.time.format("%m/%y"),
+        tooltip: d3.time.format("%Y-%m-%d %H:%M %Z"),
+        context: d3.time.format("%m-%d"),
+        data_source: d3.time.format("%Y-%m-%dT%H:%M:%SZ")
+    }
+
+    this.dateScales = {
+        // ticks(d3.time.minutes, 15)
+        hours: d3.time.scale().tickFormat("%H:M"),
+        days: d3.time.scale().tickFormat("%d"),
+        months: d3.time.scale().tickFormat("%m/%y"),
+        tooltip: d3.time.scale().tickFormat("%Y-%m-%d %H:%M %Z"),
+        context: d3.time.scale().tickFormat("%m-%d")
+
+    }
+
+
 
     var chart_layout = this.chart.layout;
     var container = chart_layout.container;
@@ -252,7 +287,7 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
     // create the brush function event handler for the one of the parameters in the context.
     this.chart.brush = d3.svg.brush().x(self.chart.context.param1.x).on("brush", brush);
 
-    this.chart.tooltip = d3.select("#"+this.dom_element)
+    this.chart.tooltip = d3.select("#"+this.tool.domID)
         .append("div").style("position", "absolute")
         .style("z-index", "10")
         .style("visibility", "hidden")
@@ -261,7 +296,7 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .style("border", "1px solid #333333")
         .text("");
 
-    this.chart.tooltip2 = d3.select("#"+this.dom_element)
+    this.chart.tooltip2 = d3.select("#"+this.tool.domID)
         .append("div")
         .style("position", "absolute")
         .style("z-index", "10")
@@ -298,20 +333,18 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
             return self.chart.context.param2.y(d[self.chart.timeseries.datasets.param2.column]);
         });
 
-    this.chart.focus.param1.path = d3.svg.line().interpolate("linear").x(function (d) {
-        return self.chart.focus.param1.x(d.date_time);
-    }).y(function (d) {
-            return self.chart.focus.param1.y(d[self.chart.timeseries.datasets.param1.column]);
-        });
+    this.chart.focus.param1.path = d3.svg.line()
+        .interpolate("linear")
+        .x(function (d) {return self.chart.focus.param1.x(d.date_time);})
+        .y(function (d) {return self.chart.focus.param1.y(d[self.chart.timeseries.datasets.param1.column]);});
 
-    this.chart.focus.param2.path = d3.svg.line().interpolate("linear").x(function (d) {
-        return self.chart.focus.param2.x(d.date_time);
-    }).y(function (d) {
-            return self.chart.focus.param2.y(d[self.chart.timeseries.datasets.param2.column]);
-        });
+    this.chart.focus.param2.path = d3.svg.line()
+        .interpolate("linear")
+        .x(function (d) {return self.chart.focus.param2.x(d.date_time);})
+        .y(function (d) {return self.chart.focus.param2.y(d[self.chart.timeseries.datasets.param2.column]);});
 
-    var tool_container = d3.select("#"+this.dom_element).append("div")
-        .attr("id", "tool-container")
+
+    var tool_container = d3.select("#" + id + "-tool-container");
 
     // loading div.. append it to the tool container
     this.d_loading = tool_container.append("div")
