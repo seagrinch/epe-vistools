@@ -323,6 +323,7 @@ EV5_NDBC_Data_Comparator.prototype.uiChart = function () {
         .append("svg:text")
         .attr("id", id + "-chart-x-axis-label")
         .text("Date / Time")
+        .attr("font-weight","bolder")
         .attr("text-anchor", "middle")
         .attr("stroke-width", 2)
         .attr("x", (chart.layout.width / 2))
@@ -336,6 +337,7 @@ EV5_NDBC_Data_Comparator.prototype.uiChart = function () {
         .attr("text-anchor", "middle")
         .attr("x", -(container.layout.height / 2))
         .attr("y", container.layout.margin.left / 2)
+        .attr("font-weight","bolder")
         .attr("class", "chart-label-y")
         .attr("fill","red")
         .attr("transform", "rotate(270)")
@@ -348,6 +350,7 @@ EV5_NDBC_Data_Comparator.prototype.uiChart = function () {
         .attr("text-anchor", "middle")
         .attr("x",  (container.layout.height / 2))
         .attr("y", -(chart.layout.width_m + container.layout.margin.right + 10))
+        .attr("font-weight","bolder")
         .attr("class", "chart-label-y")
         .attr("fill","blue")
         .attr("transform", "rotate(90)")
@@ -664,7 +667,7 @@ EV5_NDBC_Data_Comparator.prototype.dataInitialize = function ( ) {
     else {
         // scatter view. load or transition to scatter plot
 
-        d3.select("#" + id + "-chart-title")
+        chart.text_title
             .text(label1 + " vs. " + label2)
 
         var line = d3.svg.line()
@@ -736,14 +739,14 @@ EV5_NDBC_Data_Comparator.prototype.dataInitialize = function ( ) {
         chart.g_axis_y1
             .call(axisY1);
 
-        d3.select("#" + id + "-chart-y-axis-label-var1")
+        chart.text_chart_axis_y1
             .text(label1);
 
-        d3.select("#" + id + "-chart-y-axis-label-var2")
+        chart.text_chart_axis_y2
             .transition()
             .style("visibility","hidden");
 
-        d3.select("#" + id + "-chart-x-axis-label")
+        chart.text_chart_axis_x
             .transition()
             .text(label2);
 
@@ -805,256 +808,253 @@ EV5_NDBC_Data_Comparator.prototype.transitionChart = function ( ){
     var axisY1 = d3.svg.axis().scale(lineY1).orient("left");
     var axisY2 = d3.svg.axis().scale(lineY2).orient("right");
 
-        if (chartView == "timeseries") {
+    if (chartView == "timeseries") {
 
-            console.log("TIMESERIES VIEW: ");
+        console.log("TIMESERIES VIEW: ");
 
-            d3.select("#" + id + "-chart-title")
-                .text(label1 + " & " + label2);
+        chart.text_title
+            .text(label1 + " & " + label2);
 
-            d3.select("#" + id + "-chart-y-axis-label-var1")
-                .text(label1)
-                .style("fill","#B94A48");
+        chart.text_chart_axis_y1
+            .text(label1)
+            .style("fill","#B94A48");
 
-            d3.select("#" + id + "-chart-y-axis-label-var2")
-                .text(label2)
-                .style("visibility","visible")
-                .style("fill","#3A87AD");
+        chart.text_chart_axis_y2
+            .text(label2)
+            .style("visibility","visible")
+            .style("fill","#3A87AD");
 
-            var line1 = d3.svg.line()
-                .x(function (d) {return lineX(d[colX]);})
-                .y(function (d) {return lineY1(d[col1]);});
+        var line1 = d3.svg.line()
+            .x(function (d) {return lineX(d[colX]);})
+            .y(function (d) {return lineY1(d[col1]);});
 
-            var line2 = d3.svg.line()
-                .x(function (d) {return lineX(d[colX]);})
-                .y(function (d) {return lineY2(d[col2]);});
+        var line2 = d3.svg.line()
+            .x(function (d) {return lineX(d[colX]);})
+            .y(function (d) {return lineY2(d[col2]);});
 
-            chart.path_timeseries1
-                .style("visibility","hidden")
-                .attr("d", line1(dataset.data));
+        chart.path_timeseries1
+            .style("visibility","hidden")
+            .attr("d", line1(dataset.data));
 
-            chart.path_timeseries1
-                .transition().delay(1200).duration(1000)
-                .style("visibility","visible");
+        chart.path_timeseries1
+            .transition().delay(1200).duration(1000)
+            .style("visibility","visible");
 
-            chart.path_timeseries2
-                .style("visibility","hidden")
-                .attr("d", line2(dataset.data))
-                .transition().delay(1200).duration(1000)
-                .style("visibility","visible");
+        chart.path_timeseries2
+            .style("visibility","hidden")
+            .attr("d", line2(dataset.data))
+            .transition().delay(1200).duration(1000)
+            .style("visibility","visible");
 
-            // append circles w/ enter
-            var enter_symbol1 = chart.g_timeseries_symbol1
-                .selectAll("circle")
-                .data(dataset.data);
+        // append circles w/ enter
+        var enter_symbol1 = chart.g_timeseries_symbol1
+            .selectAll("circle")
+            .data(dataset.data);
 
-            enter_symbol1
-                .enter().append("circle")
-                .attr("r", 3.5)
-                .style("fill", "#FFFFFF")
-                .style("stroke", "#B94A48")
-                .style("stroke-width", 1)
+        enter_symbol1
+            .enter().append("circle")
+            .attr("r", 3.5)
+            .style("fill", "#FFFFFF")
+            .style("stroke", "#B94A48")
+            .style("stroke-width", 1)
 
-            enter_symbol1
-                .transition().duration(1000)
-                .attr("cx", function (d) {return lineX(d[colX]);})
-                .attr("cy", function (d) {return lineY1(d[col1]);})
-                .style("stroke", "#B94A48")
+        enter_symbol1
+            .transition().duration(1000)
+            .attr("cx", function (d) {return lineX(d[colX]);})
+            .attr("cy", function (d) {return lineY1(d[col1]);})
+            .style("stroke", "#B94A48")
 
-            enter_symbol1.exit().remove();
+        enter_symbol1.exit().remove();
 
-            chart.g_timeseries_symbol1
-                .selectAll("circle")
-                .on("mouseover", function(d){self.timeseries_mouseover(d, colX, col1, units1, "important")})
-                .on("mousemove", function(d){self.mouseMove()})
-                .on("mouseout", function(d){self.mouseOut()});
+        chart.g_timeseries_symbol1
+            .selectAll("circle")
+            .on("mouseover", function(d){self.timeseries_mouseover(d, colX, col1, units1, "important")})
+            .on("mousemove", function(d){self.mouseMove()})
+            .on("mouseout", function(d){self.mouseOut()});
 
-            var enter_symbol2 = chart.g_timeseries_symbol2
-                .selectAll("circle")
-                .data(dataset.data);
+        var enter_symbol2 = chart.g_timeseries_symbol2
+            .selectAll("circle")
+            .data(dataset.data);
 
-            enter_symbol2
-                .enter().append("circle")
-                .attr("r", 3.5)
-                .style("fill", "#FFFFFF")
-                .style("stroke", "#3A87AD")
-                .style("stroke-width", 1);
+        enter_symbol2
+            .enter().append("circle")
+            .attr("r", 3.5)
+            .style("fill", "#FFFFFF")
+            .style("stroke", "#3A87AD")
+            .style("stroke-width", 1);
 
-            enter_symbol2
-                .transition().duration(1000)
-                .attr("cx", function (d) {return lineX(d[colX]);})
-                .attr("cy", function (d) {return lineY2(d[col2]);})
-                .style("stroke", "#3A87AD");
+        enter_symbol2
+            .transition().duration(1000)
+            .attr("cx", function (d) {return lineX(d[colX]);})
+            .attr("cy", function (d) {return lineY2(d[col2]);})
+            .style("stroke", "#3A87AD");
 
-            enter_symbol2.exit().remove();
+        enter_symbol2.exit().remove();
 
-            chart.g_timeseries_symbol2
-                .selectAll("circle")
-                .on("mouseover", function(d){self.timeseries_mouseover(d, colX, col2, units2, "info")})
-                .on("mousemove", function(d){self.mouseMove()})
-                .on("mouseout", function(d){self.mouseOut()});
+        chart.g_timeseries_symbol2
+            .selectAll("circle")
+            .on("mouseover", function(d){self.timeseries_mouseover(d, colX, col2, units2, "info")})
+            .on("mousemove", function(d){self.mouseMove()})
+            .on("mouseout", function(d){self.mouseOut()});
 
-            chart.g_path_scatter_lr
-                .transition()
-                .duration(1000)
-                .attr("d","");
+        chart.g_path_scatter_lr
+            .transition()
+            .duration(1000)
+            .attr("d","");
 
-            chart.g_axis_x.call(axisX);
+        chart.g_axis_x.call(axisX);
 
-            chart.g_axis_y1.call(axisY1);
+        chart.g_axis_y1.call(axisY1);
 
-            chart.g_axis_y2
-                .style("visibility","visible")
-                .call(axisY2);
+        chart.g_axis_y2
+            .style("visibility","visible")
+            .call(axisY2);
 
-            chart.g_axis_y2
-                .selectAll(".tick")
-                .style("stroke", "#B94A48")
-                .style("fill","none");
+        chart.g_axis_y2
+            .selectAll(".tick")
+            .style("stroke", "#B94A48")
+            .style("fill","none");
 
-            chart.g_axis_y2
-                .selectAll(".domain")
-                .style("stroke","#000000")
-                .style("fill","none");
+        chart.g_axis_y2
+            .selectAll(".domain")
+            .style("stroke","#000000")
+            .style("fill","none");
 
-            d3.select("#" + id + "-chart-y-axis-label-var1")
-                .text(label1);
+        chart.text_chart_axis_y1
+            .text(label1);
 
-            d3.select("#" + id + "-chart-y-axis-label-var2")
-                .text(label2);
+        chart.text_chart_axis_y2
+            .text(label2);
 
-            d3.select("#" + id + "-chart-x-axis-label")
-                .text("Date Time");
+        chart.text_chart_axis_x
+            .text("Date Time");
 
-            dataset.isGraphed = true;
-        }
-        else {
-            // scatter view. load or transition to scatter plot
+        dataset.isGraphed = true;
+    }
+    else {
+        // scatter view. load or transition to scatter plot
 
-            console.log("SCATTER VIEW: ");
+        console.log("SCATTER VIEW: ");
 
-            d3.select("#" + id + "-chart-title")
-                .text(label1 + " vs. " + label2)
+        chart.text_title
+            .text(label1 + " vs. " + label2)
 
-            d3.select("#" + id + "-chart-y-axis-label-var1")
-                .text(label1)
-                .style("fill","#000000")
+        var line = d3.svg.line()
+            .interpolate("monotone")
+            .x(function (d) {return lineX2(d[col2]);})
+            .y(function (d) {return lineY1(d[col1]);})
 
-            var line = d3.svg.line()
-                .interpolate("monotone")
-                .x(function (d) {return lineX2(d[col2]);})
-                .y(function (d) {return lineY1(d[col1]);})
+        chart.path_timeseries1
+            .transition().duration(1000)
+            .style("visibility","hidden");
 
-            chart.path_timeseries1
-                .transition().duration(1000)
-                .style("visibility","hidden");
+        chart.path_timeseries2
+            .transition().duration(1000)
+            .style("visibility","hidden");
 
-            chart.path_timeseries2
-                .transition().duration(1000)
-                .style("visibility","hidden");
+        var enter_symbol1 = chart.g_timeseries_symbol1
+            .selectAll("circle")
+            .data(dataset.data);
 
-            var enter_symbol1 = chart.g_timeseries_symbol1
-                .selectAll("circle")
-                .data(dataset.data);
+        enter_symbol1
+            .enter().append("circle")
+            .attr("r", 3.5)
+            .style("fill", "#FFFFFF")
+            .style("stroke", "orange")
+            .style("stroke-width", 1)
 
-            enter_symbol1
-                .enter().append("circle")
-                .attr("r", 3.5)
-                .style("fill", "#FFFFFF")
-                .style("stroke", "orange")
-                .style("stroke-width", 1)
+        enter_symbol1.transition().duration(1500)
+            .attr("cx", function(d) { return lineX2(d[col2]); })
+            .attr("cy", function(d) { return lineY1(d[col1]); })
+            .style("stroke","orange")
 
-            enter_symbol1.transition().duration(1500)
-                .attr("cx", function(d) { return lineX2(d[col2]); })
-                .attr("cy", function(d) { return lineY1(d[col1]); })
-                .style("stroke","orange")
+        enter_symbol1.exit().remove();
 
-            enter_symbol1.exit().remove();
-
-            chart.g_timeseries_symbol1
-                .selectAll("circle")
-                .on("mouseover", function(d){self.scatter_mouseover(d, col1, col2, units1, units2, label1, label2)})
-                .on("mousemove", function(d){self.mouseMove()})
-                .on("mouseout", function(d){self.mouseOut()});
+        chart.g_timeseries_symbol1
+            .selectAll("circle")
+            .on("mouseover", function(d){self.scatter_mouseover(d, col1, col2, units1, units2, label1, label2)})
+            .on("mousemove", function(d){self.mouseMove()})
+            .on("mouseout", function(d){self.mouseOut()});
 
 
-            var enter_symbol2 = chart.g_timeseries_symbol2
-                .selectAll("circle")
-                .data(dataset.data);
+        var enter_symbol2 = chart.g_timeseries_symbol2
+            .selectAll("circle")
+            .data(dataset.data);
 
-            enter_symbol2
-                .enter().append("circle")
-                .attr("r", 3.5)
-                .style("fill", "#FFFFFF")
-                .style("stroke", "orange")
-                .style("stroke-width", 1)
+        enter_symbol2
+            .enter().append("circle")
+            .attr("r", 3.5)
+            .style("fill", "#FFFFFF")
+            .style("stroke", "orange")
+            .style("stroke-width", 1)
 
-            enter_symbol2
-                .transition().duration(1500)
-                .attr("cx", function(d) { return lineX2(d[col2]); })
-                .attr("cy", function(d) { return lineY1(d[col1]); })
-                .style("stroke","orange")
+        enter_symbol2
+            .transition().duration(1500)
+            .attr("cx", function(d) { return lineX2(d[col2]); })
+            .attr("cy", function(d) { return lineY1(d[col1]); })
+            .style("stroke","orange")
 
-            enter_symbol2.exit().remove();
+        enter_symbol2.exit().remove();
 
-            chart.g_timeseries_symbol2
-                .selectAll("circle")
-                .on("mouseover", function(d){self.scatter_mouseover(d,col1,col2,units1,units2,label1,label2)})
-                .on("mousemove", function(d){self.mouseMove()})
-                .on("mouseout", function(d){self.mouseOut()});
+        chart.g_timeseries_symbol2
+            .selectAll("circle")
+            .on("mouseover", function(d){self.scatter_mouseover(d,col1,col2,units1,units2,label1,label2)})
+            .on("mousemove", function(d){self.mouseMove()})
+            .on("mouseout", function(d){self.mouseOut()});
 
-            var line_lr_x = d3.scale.linear()
-                .range([chart.layout.width_m,0 ])
-                .domain(extentY2);
+        var line_lr_x = d3.scale.linear()
+            .range([chart.layout.width_m,0 ])
+            .domain(extentY2);
 
-            var line_lr_y = d3.scale.linear()
-                .range([chart.layout.height_m,0 ])
-                .domain(extentY1);
+        var line_lr_y = d3.scale.linear()
+            .range([chart.layout.height_m,0 ])
+            .domain(extentY1);
 
-            var line_lr = d3.svg.line()
-                .x(function (d) {return line_lr_x(d.x);})
-                .y(function (d) {return line_lr_y(d.y);});
+        var line_lr = d3.svg.line()
+            .x(function (d) {return line_lr_x(d.x);})
+            .y(function (d) {return line_lr_y(d.y);});
 
-            console.log("points",dataset.linRegPoints);
+        console.log("points",dataset.linRegPoints);
 
-            // now draw linear regression line
-            chart.g_path_scatter_lr
-                .transition()
-                .delay(1500)
-                .duration(1000)
-                .attr("d", line_lr(dataset.linRegPoints))
+        // now draw linear regression line
+        chart.g_path_scatter_lr
+            .transition()
+            .delay(1500)
+            .duration(1000)
+            .attr("d", line_lr(dataset.linRegPoints))
 
-            chart.g_axis_x
-                .call(axisX2);
+        chart.g_axis_x
+            .call(axisX2);
 
-            chart.g_axis_x
-                .selectAll(".tick")
-                .style("stroke", "#B94A48")
-                .style("fill","none");
+        chart.g_axis_x
+            .selectAll(".tick")
+            .style("stroke", "#B94A48")
+            .style("fill","none");
 
-            chart.g_axis_x
-                .selectAll(".domain")
-                .style("stroke","#000000")
-                .style("fill","none");
+        chart.g_axis_x
+            .selectAll(".domain")
+            .style("stroke","#000000")
+            .style("fill","none");
 
-            chart.g_axis_y1
-                .call(axisY1);
+        chart.g_axis_y1
+            .call(axisY1);
 
-            chart.g_axis_y2
-                .style("visibility","hidden");
+        chart.g_axis_y2
+            .style("visibility","hidden");
 
-            d3.select("#" + id + "-chart-y-axis-label-var1")
-                .text(label1);
+        chart.text_chart_axis_y1
+            .text(label1)
+            .style("fill","#000000")
 
-            d3.select("#" + id + "-chart-y-axis-label-var2")
-                .transition()
-                .style("visibility","hidden");
+        chart.text_chart_axis_y2
+            .transition()
+            .style("visibility","hidden");
 
-            d3.select("#" + id + "-chart-x-axis-label")
-                .transition()
-                .text(label2);
+        chart.text_chart_axis_x
+            .transition()
+            .text(label2);
 
-        }
+    }
 
     var fmt = self.tool.formats.linearModel;
 
