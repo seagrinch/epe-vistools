@@ -1626,7 +1626,7 @@ EV5_NDBC_Data_Comparator.prototype.timeseries_mouseover = function (d,colX,colY,
         .html(date_format(d[colX]) + " - <b>" + fmt(d[colY]) + units + "</b>");
 }
 
-EV5_NDBC_Data_Comparator.prototype.scatter_mouseover = function (d, colX, colY, units1, units2, observation1, observation2, tooltip_label) {
+EV5_NDBC_Data_Comparator.prototype.scatter_mouseover = function (d, col1, col2, units1, units2, observation1, observation2, tooltip_label) {
     console.log("scatter mouseover");
 
     var self = this,
@@ -1639,8 +1639,8 @@ EV5_NDBC_Data_Comparator.prototype.scatter_mouseover = function (d, colX, colY, 
         .html(
         d["date_time"]
             + " <br />"
-            + observation1 + ": " + fmt_num(d[colY]) + units1 + "<br />"
-            + observation2 + ": " + fmt_num(d[colX]) + units2
+            + observation1 + ": " + fmt_num(d[col1]) + units1 + "<br />"
+            + observation2 + ": " + fmt_num(d[col2]) + units2
     )
 }
 
