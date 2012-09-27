@@ -1,17 +1,17 @@
-// Glider Profile Explorer (EV-T3)
+// Glider Profile Explorer
 //
-// Ocean Observatories Initiative 
+// Ocean Observatories Initiative
 // Education & Public Engagement Implementing Organization
 //
-// Written by Mike Mills, Rutgers University
-// Revised 8/7/12
-// Version 0.1.4
+// Written by Michael Mills and Sage Lichtenwalner, Rutgers University
+// Revised 8/24/12
+// Version 0.1.6
 
-var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
+var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
     var self = this;
 
-    this.domID = (typeof(div_id) == "undefined" ? this.id() : div_id );
+    this.evTool = new EVTool();
 
     /***************************************/
     // SETTINGS - Parameters
@@ -68,14 +68,13 @@ var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
             "units":"(ppb)",
             "units2":"ppb"
         },
-        "sci_bbfl2s_cdom_scaled":{
+        "sci_bbfl2s_chlor_scaled":{
             "name":"Chlorophyll",
             "label":"Chlorophyll (µg L-1)",
             "column":"sci_bbfl2s_chlor_scaled",
             "units":"(µg L-1)",
             "units2":"µg L-1"
         }
-
     };
 
     this.webservice = {
@@ -110,8 +109,8 @@ var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
             "Seawater Salinity":"sea_water_salinity",
             "Seawater Density":"sea_water_density",
             "Volume Scattering":"sci_bb3slo_b470_scaled",
-            "Volume Scattering":"sci_bb3slo_b532_scaled",
-            "Volume Scattering":"sci_bb3slo_b660_scaled",
+            "Volume ScatteringB":"sci_bb3slo_b532_scaled",
+            "Volume ScatteringC":"sci_bb3slo_b660_scaled",
             "CDOM":"sci_bbfl2s_cdom_scaled",
             "Chlorophyll":"sci_bbfl2s_chlor_scaled",
             "Profile ID":"profile_id",
@@ -119,18 +118,6 @@ var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
 
         }
     }
-
-    // todo: rename with "observations"
-    this.parameters = [
-        "sea_water_temperature",
-        "sea_water_salinity",
-        "sea_water_density",
-        "sci_bb3slo_b470_scaled",
-        "sci_bb3slo_b532_scaled",
-        "sci_bb3slo_b660_scaled",
-        "sci_bbfl2s_cdom_scaled",
-        "sci_bbfl2s_chlor_scaled"
-    ];
 
     // stations object is populated from the configuration list and overridden with the user configuration
     this.stations = {};
@@ -149,51 +136,51 @@ var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
 
     // tool object to hold various properties and methods
     this.tool = {
-        id_prefix:self.domID,
-        container:{
-            layout:{
-                margin:{top:20, right:0, bottom:0, left:0},
-                width:860,
-                height:570
+        "domID":self.evTool.domToolID(divId),
+        "container":{
+            "layout":{
+                "margin":{"top":20, "right":0, "bottom":0, "left":0},
+                "width":860,
+                "height":570
             }
         },
-        controls:{
-            layout:{
-                margin:{top:10, right:10, bottom:0, left:20},
-                width:420
+        "controls":{
+            "layout":{
+                "margin":{"top":10, "right":10, "bottom":0, "left":20},
+                "width":420
             }
         },
-        chart:{
-            axis:{},
-            layout:{
-                margin:{top:40, right:10, bottom:20, left:60}
+        "chart":{
+            "axis":{},
+            "layout":{
+                "margin":{"top":40, "right":10, "bottom":20, "left":60}
             }
         },
-        map:{
-            layout:{height:270}
+        "map":{
+            "layout":{"height":270}
         },
-        formats:{
-            tooltip_num:d3.format("g"),
-            tooltip_date:d3.time.format("%Y-%m-%d %H:%M %Z"),
-            obsdate: d3.time.format("%Y-%m-%dT%H:%M:%SZ"),
-            dateDisplay: d3.time.format("%Y-%m-%d %H:%M %Z")
+        "formats":{
+            "tooltip_num" : d3.format("g"),
+            "tooltip_date" : d3.time.format("%Y-%m-%d %H:%M %Z"),
+            "obsdate" : d3.time.format("%Y-%m-%dT%H:%M:%SZ"),
+            "dateDisplay" : d3.time.format("%Y-%m-%d %H:%M %Z")
 
         },
-        scales:{
-            datetime:{
-                hours:d3.time.scale().tickFormat("%H:M"),
-                days:d3.time.scale().tickFormat("%d"),
-                months:d3.time.scale().tickFormat("%m/%y")
+        "scales":{
+            "datetime":{
+                "hours":d3.time.scale().tickFormat("%H:M"),
+                "days":d3.time.scale().tickFormat("%d"),
+                "months":d3.time.scale().tickFormat("%m/%y")
             }
         },
-        configuration:{
-            default:self.configuration,
-            custom:$.extend(true, {}, self.configuration)
+        "configuration":{
+            "original" : self.configuration,
+            "custom" : self.configuration
         },
-        datasets:{}
+        "datasets":{}
     };
 
-    this.parse_configuration(configObject);
+    this.evTool.configurationParse(self.tool.configuration.custom, customToolConfiguration );
 
     this.controls = {
 
@@ -206,6 +193,8 @@ var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
     };
 
     this.trackMap = {};
+
+    // request esri arcgis jsapi, callback will requires esri.map,  continue loading tool
 
     $.getScript("http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.0compact", function(data, textStatus, jqxhr) {
         // CONSOLE-OFF console.log(data); //data returned
@@ -220,29 +209,16 @@ var EV3_Glider_Profile_Explorer = function (div_id, configObject) {
 
 }
 
-EV3_Glider_Profile_Explorer.prototype.parse_configuration = function(config_override){
-
-    var self = this;
-
-    // set defaults
-    $.extend( true, self.tool.configuration.default, self.configuration);
-    $.extend( true, self.tool.configuration.custom, self.configuration);
-
-    if(typeof(config_override)=="undefined"){
-        // CONSOLE-OFF console.log("no settings passed, default configuration loaded");
-        $.extend( true, self.tool.configuration.custom, self.configuration)
-    }
-    else{
-        //override settings exist, so merge overrides into configuration
-        $.extend( true, self.tool.configuration.custom, config_override);
-    }
-
-};
-
 EV3_Glider_Profile_Explorer.prototype.loadDeferred = function (config_override) {
+
+    // continue loading tool once arcgis jsapi is called and dojo is required.
+
     var self = this;
 
-    // calculate dimensions for the tool
+    // set interface container and get dimensions for layout
+    this.uiToolInterface();
+
+    // calculate dimensions for the remaining tool parts
     this.uiDimensions();
 
     // draw chart
@@ -275,10 +251,10 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                {
-                    "color": [200,0,0,255],
-                    "width": 2
-                }
+                        {
+                            "color": [200,0,0,255],
+                            "width": 2
+                        }
             }),
             smsUp : new esri.symbol.SimpleMarkerSymbol({
                 "type": "esriSMS",
@@ -289,10 +265,10 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                {
-                    "color": [100,100,100,255],
-                    "width": .5
-                }
+                        {
+                            "color": [100,100,100,255],
+                            "width": .5
+                        }
             }),
 
             smsDown : new esri.symbol.SimpleMarkerSymbol({
@@ -304,16 +280,16 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                {
-                    "color": [100,100,100,255],
-                    "width": .5
-                }
+                        {
+                            "color": [100,100,100,255],
+                            "width": .5
+                        }
             })
         };
 
         var initExtent = new esri.geometry.Extent({"xmin":-74,"ymin":38,"xmax":-69,"ymax":44,"spatialReference":{ "wkid":4326 }});
 
-        self.trackMap.map = new esri.Map( self.tool.id_prefix + "track-map" ,{
+        self.trackMap.map = new esri.Map( self.tool.domID + "track-map" ,{
             extent:esri.geometry.geographicToWebMercator(initExtent)
         });
 
@@ -347,7 +323,7 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
         function showCoordinates(evt) {
             var mp = esri.geometry.webMercatorToGeographic(evt.mapPoint);
             //display mouse coordinates
-            dojo.byId(self.tool.id_prefix + "track-map-info").innerHTML = d3.round(mp.x,4) + ", " + d3.round(mp.y,4);
+            dojo.byId(self.tool.domID + "track-map-info").innerHTML = d3.round(mp.x,4) + ", " + d3.round(mp.y,4);
 
         }
     }
@@ -356,11 +332,20 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
 
 }
 
-EV3_Glider_Profile_Explorer.prototype.id = function ( ) {
+EV3_Glider_Profile_Explorer.prototype.uiToolInterface = function() {
+    "use strict";
 
-    return "ev-" + ( Math.floor ( Math.random( ) * 9000 ) + 1000 ).toString() + "-";
+    var self = this, id = self.tool.domID;
 
-}
+    self.tool_container = d3.select("#" + id) //"#" + id + "tool")
+        .append("div")
+        .attr("id", id + "-tool-container")
+        .style("margin-left", self.tool.container.layout.margin.left+ "px");
+
+    self.tool.container.layout.width = $("#"+id + "-tool-container").width() - 40;
+    self.tool.controls.layout.width = self.tool.container.layout.width / 2 - 40;
+
+};
 
 EV3_Glider_Profile_Explorer.prototype.uiDimensions = function() {
 
@@ -391,15 +376,9 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
         chart = self.tool.chart,
         controls = self.tool.controls,
         config = self.tool.configuration.custom,
-        id = self.tool.id_prefix,
-        chart_title = "";
+        id = self.tool.domID;
 
-    self.tool_container = d3.select("#" + self.domID) //"#" + id + "tool")
-        .append("div")
-        .attr("id", id + "tool-container")
-        .style("margin-left", container.layout.margin.left+ "px")
-
-    self.tool.chart.tooltip = d3.select("#" + id + "tool-container")
+    self.tool.chart.tooltip = d3.select("#" + id + "-tool-container")
         .append("div")
         .attr("id",id + "tooltip-div")
         .style("position", "absolute")
@@ -532,7 +511,7 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
 EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
     var self = this,
         container = self.tool.container.layout,
-        id= self.tool.id_prefix,
+        id= self.tool.domID,
         config = self.tool.configuration.custom,
         controls = self.tool.controls.layout;
 
@@ -600,7 +579,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                         .html("&larr;")
                         .on("click",function(){
 
-                            var slider = $("#"+ self.tool.id_prefix+"profile-slider");
+                            var slider = $("#"+ self.tool.domID+"profile-slider");
                             var val = slider.slider("option","value");
 
                             if ( val != slider.slider("option","min")){
@@ -658,92 +637,17 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                         .html("&rarr;")
                         .on("click",function(){
 
-                            var slider = $("#"+ self.tool.id_prefix+"profile-slider");
-
+                            var slider = $("#"+ self.tool.domID+"profile-slider");
                             var val = slider.slider("option","value");
 
                             if ( val != slider.slider("option","max")){
-
                                 slider.slider("value", val + 1 )
                             }
-
-                            // if = max, disable
                         })
                 )
             )
         )
-
-
     )
-
-
-
-//            .append(
-//                $("<div></div>")
-//                    .addClass("row-fluid")
-//                    .append(
-//                        $('<div></div>')
-//                            .addClass("span12")
-//                            .append(
-//                                $("<ul></ul>")
-//                                    .addClass("pager")
-//                                    .append(
-//                                        $("<li></li>")
-//                                            .addClass("previous")
-//                                            .append(
-//                                                    $("<a></a>")
-//                                                        .html("&larr;")
-//                                                        .on("click",function(){
-//
-//                                                            var slider = $("#"+ self.tool.id_prefix+"profile-slider");
-//                                                            var val = slider.slider("option","value");
-//
-//                                                            if ( val != slider.slider("option","min")){
-//                                                                slider.slider("value", val - 1 )
-//                                                            }
-//                                                        })
-//                                            )
-//                                    )
-//                                    .append(
-//                                        $("<li></li>")
-//                                            .addClass("selected-profile label label-info")
-//                                                .css("font-size","110%")
-//
-//                                            .html("Selected Profile: ")
-//                                            .append(
-//                                                $("<span></span>")
-//
-//                                                    .attr("id", id + "profile-selection")
-//                                            )
-//                                    )
-//                                    .append(
-//                                        $("<li></li>")
-//                                            .addClass("next")
-//                                            .append(
-//                                                    $("<a></a>")
-//                                                        //.attr("href","#")
-//                                                        .html("&rarr;")
-//                                                            .on("click",function(){
-//
-//                                                                var slider = $("#"+ self.tool.id_prefix+"profile-slider");
-//
-//                                                                var val = slider.slider("option","value");
-//
-//                                                                if ( val != slider.slider("option","max")){
-//
-//                                                                    slider.slider("value", val + 1 )
-//                                                                }
-//
-//                                                                // if = max, disable
-//                                                            })
-//                                            )
-//                                    )
-//                            )
-//                    )
-//            )
-
-
-
 
     var ctrl_trackMap = $("<div></div>")
         .addClass("ctrl map")
@@ -757,7 +661,8 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
 
         $("<div></div>")
             .css("float","right")
-            .attr("id",id + "track-map-info").html("&nbsp;")
+            .attr("id",id + "track-map-info")
+            .html("&nbsp;")
     )
         .append(
 
@@ -775,67 +680,11 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
         )
     )
 
-//    var ctrl_profile_info= $("<div></div>")
-//            .addClass("ctrl profile-info")
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Profile ID: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-id")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Latitude: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-lat")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Longitude: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-long")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Record Count: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-records")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Direction: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-direction")
-//            ))
-//            .append(
-//
-//            $("<h5></h5>")
-//                    .html("Date: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-date")
-//            ))
-
     var ctrl_profile_info= $("<div></div>")
         .css({"margin-top":"12px","padding":"0","margin":"0"})
         .addClass("container-fluid")
         .append(
+
         $("<div></div>")
             .addClass("row-fluid")
             .append(
@@ -878,63 +727,6 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
 
         )
     )
-
-
-//            .addClass("ctrl profile-info")
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Profile ID: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-id")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Latitude: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-lat")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Longitude: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-long")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Record Count: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-records")
-//            ))
-//            .append(
-//
-//                $("<h5></h5>")
-//                    .html("Direction: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-direction")
-//            ))
-//            .append(
-//
-//            $("<h5></h5>")
-//                    .html("Date: ")
-//                    .append(
-//                    $("<span></span>")
-//                            .addClass("attribute")
-//                            .attr("id", id + "profile-info-date")
-//            ))
 
     var ctrl_dd_observations_select = $("<select></select>")
         .attr("id",id+"dd-observations")
@@ -1008,7 +800,8 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
     d3.select("#" + id + "svgMapToggleUp")
         .on("click",function(b){
 
-            var a = d3.select("#" + id + "svgMapToggleUp").select("circle");
+            var a = d3.select("#" + id + "svgMapToggleUp")
+                .select("circle");
 
             if(a.attr("fill") == "#FFF"){
 
@@ -1057,10 +850,10 @@ EV3_Glider_Profile_Explorer.prototype.slideProfile = function ( a ) {
             "xoffset": 0,
             "yoffset": 0,
             "outline":
-            {
-                "color": [255,0,0,255],
-                "width": 2
-            }
+                    {
+                        "color": [255,0,0,255],
+                        "width": 2
+                    }
         })
     ));
 
@@ -1072,18 +865,6 @@ EV3_Glider_Profile_Explorer.prototype.slideProfile = function ( a ) {
 
 }
 
-EV3_Glider_Profile_Explorer.prototype.dataDownloadTrack = function () {
-    var self = this;
-
-    // download track
-}
-
-EV3_Glider_Profile_Explorer.prototype.dataDownloadCast = function () {
-    var self = this;
-
-    // download profile and update map point and chart...
-}
-
 EV3_Glider_Profile_Explorer.prototype.getDeployments = function (deploymentId){
 
 //    http://epe.marine.rutgers.edu/visualization/proxy_glider.php?request=getdeployments
@@ -1091,12 +872,9 @@ EV3_Glider_Profile_Explorer.prototype.getDeployments = function (deploymentId){
 //        id,name,start_time,end_time,casts
 //        246,"RU07 MURI/OOI",2011-12-14T17:11:00Z,2012-01-07T14:47:00Z,1651
 
-    var self = this, id = self.tool.id_prefix;
+    var self = this, id = self.tool.domID, config = self.tool.configuration.custom;
 
-    //return
     var url = "http://epe.marine.rutgers.edu/visualization/proxy_glider.php?request=getdeployments";
-
-    console.log("getdeployment:" , url);
 
     d3.csv( url, function ( data) {
 
@@ -1125,42 +903,44 @@ EV3_Glider_Profile_Explorer.prototype.getDeployments = function (deploymentId){
             d.start_time = self.tool.formats.obsdate.parse(d.start_time);
             d.end_time = self.tool.formats.obsdate.parse(d.end_time);
 
-//            deployObj.start_time = self.tool.formats.obsdate.parse(deployObj.start_time);
-//            deployObj.end_time = self.tool.formats.obsdate.parse(deployObj.end_time);
+            if( d.id == config.deployment ){
 
+                self.displayInfoDeployment(d);
+            }
         });
-
-        // CONSOLE-OFF console.log("ds data:", ds.data[0])
-        self.displayInfoDeployment(ds.data[0]);
-
     });
 
 }
 
-EV3_Glider_Profile_Explorer.prototype.displayInfoCast = function ( attr ){
+EV3_Glider_Profile_Explorer.prototype.displayInfoCast = function ( cast ){
 
-    var self = this, id = self.tool.id_prefix, imgDirection;
+    var self = this, id = self.tool.domID, imgDirection;
 
-    $("#" + id + "profile-selection").html(attr.profile_id);
+    $("#" + id + "profile-selection")
+        .html(cast.profile_id);
 
-    $("#" + id + "profile-info-id").html(attr.profile_id);
+    $("#" + id + "profile-info-id")
+        .html(cast.profile_id);
     //$("#" + id + "ctrl_profile_info_date").html();
-    $("#" + id + "profile-info-lat").html(attr.latitude);
-    $("#" + id + "profile-info-long").html(attr.longitude);
+    $("#" + id + "profile-info-lat")
+        .html(cast.latitude);
+    $("#" + id + "profile-info-long")
+        .html(cast.longitude);
 
     $("#" + id + "profile-info-direction")
-        .attr("src", "http://epe.marine.rutgers.edu/visualization/img/gliderDirection" + attr.direction + "32.png");
+        .attr("src", "http://epe.marine.rutgers.edu/visualization/img/gliderDirection" + cast.direction + "32.png");
 
-    $("#" + id + "profile-info-date").html(self.tool.formats.dateDisplay(attr.obsdate));
+    $("#" + id + "profile-info-date").html(self.tool.formats.dateDisplay(cast.obsdate));
 
 }
 
 EV3_Glider_Profile_Explorer.prototype.displayInfoDeployment = function ( d ){
 
-    var self = this, id = self.tool.id_prefix;
+    var self = this, id = self.tool.domID;
 
     // CONSOLE-OFF console.log("displayInfoDeployment",d);
     // CONSOLE-OFF console.log("arguments",arguments);
+    console.log("diplayInfo:", d)
 
     $("#" + id + "deployment-info-name").html(d.name);
 
@@ -1231,15 +1011,12 @@ EV3_Glider_Profile_Explorer.prototype.getTrack = function ( deploymentId, profil
 
         self.mapTrack();
 
-        //self.getCast(deployment, profile);
-
-
     });
 }
 
 EV3_Glider_Profile_Explorer.prototype.setSlider = function ( max ) {
     var self=this;
-    $("#"+ self.tool.id_prefix+"profile-slider").slider(
+    $("#"+ self.tool.domID+"profile-slider").slider(
         { max: max,
             value:self.getProfileKey(self.tool.configuration.custom.profile_id)
         }
@@ -1251,7 +1028,7 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
     var self = this,
         config = self.tool.configuration.custom,
         data = self.tool.datasets[config.deployment].profiles,
-        zoomExtent, id = self.tool.id_prefix;
+        zoomExtent, id = self.tool.domID;
 
     self.trackMap.trackPoints = [];
     self.trackMap.trackLine = new esri.geometry.Polyline(new esri.SpatialReference({wkid:4326}));
@@ -1294,8 +1071,6 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
                     d,
                     null)
             );
-
-            //self.trackMap.map.centerAndZoom(esri.geometry.geographicToWebMercator(pt),0.5);
         }
         else if( d.direction == "Up" ) {
 
@@ -1331,14 +1106,14 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
 
     dojo.connect(self.trackMap.glProfilesUp,"onMouseOver",function(evt){
         //map.graphics.clear();  //use the maps graphics layer as the highlight layer
-        var attr = evt.graphic.attributes;
+        var cast = evt.graphic.attributes;
 
         console.log("MAP MOUSE EVENT:",evt)
 
         self.tool.chart.tooltip
             .style("visibility", "visible")
             .attr("class","label label-info" )
-            .html("Profile: " + attr.profile_id + " <br />Direction: " + attr.direction)
+            .html("Profile: " + cast.profile_id + " <br />Direction: " + cast.direction)
             //.style("top", evt.screenPoint.y + 30 + "px")
             //.style("left", evt.screenPoint.x + "px");
             .style("top", evt.pageY + 30 + "px")
@@ -1353,12 +1128,12 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
 
     dojo.connect(self.trackMap.glProfilesDown,"onMouseOver",function(evt){
         //map.graphics.clear();  //use the maps graphics layer as the highlight layer
-        var attr = evt.graphic.attributes;
+        var cast = evt.graphic.attributes;
 
         self.tool.chart.tooltip
             .style("visibility", "visible")
             .attr("class","label label-info" )
-            .html("Profile: " + attr.profile_id + " <br />Direction: " + attr.direction)
+            .html("Profile: " + cast.profile_id + " <br />Direction: " + cast.direction)
             .style("top", evt.pageY + 30 + "px")
             .style("left", evt.pageX + "px");
 
@@ -1375,7 +1150,7 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
     dojo.connect(self.trackMap.glProfilesUp,"onClick",function(evt){
         //map.graphics.clear();  //use the maps graphics layer as the highlight layer
 
-        var attr = evt.graphic.attributes;
+        var cast = evt.graphic.attributes;
         //alert(content);
         //map.infoWindow.setContent(content);
         //var title = evt.graphic.getTitle();
@@ -1383,15 +1158,15 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
         //map.infoWindow.show(evt.screenPoint,map.getInfoWindowAnchor(evt.screenPoint));
 //       console.log(this,content);
 
-        config.profile_id = attr.profile_id;
+        config.profile_id = cast.profile_id;
 
-        self.displayInfoCast(attr);
-        self.getCast(config.deployment,attr.profile_id,attr);
+        self.displayInfoCast(cast);
+        self.getCast(config.deployment,cast.profile_id,cast);
 
         // add point to the path collection
         var pt = new esri.geometry.Point(
-            attr.longitude,
-            attr.latitude, {"wkid":4326} );
+            cast.longitude,
+            cast.latitude, {"wkid":4326} );
 
         self.trackMap.map.centerAt(esri.geometry.geographicToWebMercator(pt));
 
@@ -1408,19 +1183,19 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                {
-                    "color": [255,0,0,255],
-                    "width": 2
-                }
+                        {
+                            "color": [255,0,0,255],
+                            "width": 2
+                        }
             })
         ));
 
         // find profile array key here. apply to slider
 
-        $("#"+ self.tool.id_prefix+"profile-slider")
+        $("#"+ self.tool.domID+"profile-slider")
             .slider(
             "value",
-            self.getProfileKey(attr.profile_id)
+            self.getProfileKey(cast.profile_id)
         );
 
     });
@@ -1428,7 +1203,7 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
     dojo.connect(self.trackMap.glProfilesDown,"onClick",function(evt){
         //map.graphics.clear();  //use the maps graphics layer as the highlight layer
 
-        var attr = evt.graphic.attributes;
+        var cast = evt.graphic.attributes;
         //alert(content);
         //map.infoWindow.setContent(content);
         //var title = evt.graphic.getTitle();
@@ -1436,17 +1211,16 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
         //map.infoWindow.show(evt.screenPoint,map.getInfoWindowAnchor(evt.screenPoint));
 //       console.log(this,content);
 
-        // CONSOLE-OFF console.log(attr);
-        config.profile_id = attr.profile_id;
+        config.profile_id = cast.profile_id;
 
-        self.displayInfoCast(attr);
+        self.displayInfoCast(cast);
 
         //self.getCast(config.deployment,attr.profile_id);
 
         // add point to the path collection
         var pt = new esri.geometry.Point(
-            attr.longitude,
-            attr.latitude, {"wkid":4326} );
+            cast.longitude,
+            cast.latitude, {"wkid":4326} );
 
         self.trackMap.map.centerAt(esri.geometry.geographicToWebMercator(pt));
 
@@ -1464,32 +1238,25 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
                     "xoffset": 0,
                     "yoffset": 0,
                     "outline":
-                    {
-                        "color": [255,0,0,255],
-                        "width": 2
-                    }
+                            {
+                                "color": [255,0,0,255],
+                                "width": 2
+                            }
                 }
             )
         ));
 
         // find profile array key here. apply to slider
-        $("#"+ self.tool.id_prefix+"profile-slider")
+        $("#"+ self.tool.domID+"profile-slider")
             .slider(
             "value",
-            self.getProfileKey(attr.profile_id)
+            self.getProfileKey(cast.profile_id)
         );
     });
 }
 
 
-
-EV3_Glider_Profile_Explorer.prototype.mouseOverGraphics = function (evt){
-
-    // todo: combine redundant mapping functions for mouseover, mouseout ???
-
-}
-
-EV3_Glider_Profile_Explorer.prototype.getProfilePrevNext = function (profileId,prevNext){
+EV3_Glider_Profile_Explorer.prototype.getProfilePrevNext = function ( profileId, prevNext ){
 
     //todo: get next profile of particular type when only one is shown on map. next or or next down...
     var self = this;
@@ -1501,8 +1268,6 @@ EV3_Glider_Profile_Explorer.prototype.getProfilePrevNext = function (profileId,p
 
     // find which one is visible
     var lookingForDirection = "Up";
-
-    // find visibilities of graphics layers?
 
     var ds = this.tool.datasets[self.tool.configuration.custom.deployment].profiles;
 
@@ -1536,8 +1301,6 @@ EV3_Glider_Profile_Explorer.prototype.getProfileKey = function (profileId){
     }
 }
 
-
-
 EV3_Glider_Profile_Explorer.prototype.getCast = function (deploymentId, profileId){
 
 //    http://epe.marine.rutgers.edu/visualization/proxy_glider.php?request=getcast&deploymentid=246&castid=3
@@ -1546,7 +1309,7 @@ EV3_Glider_Profile_Explorer.prototype.getCast = function (deploymentId, profileI
 //        246,2011-12-14T18:22:35Z,5,41.3379,-70.992,10.7205,32.0093,1024.52,0.0023013,0.0022987,0.0011,3.57494,1.91421,3,0
 //        246,2011-12-14T18:22:40Z,6,41.3379,-70.992,10.7171,32.0103,1024.53,0.00214054,0.00200541,0.00103514,3.07183,1.88258,3,0
 
-    var self = this, id = self.tool.id_prefix;
+    var self = this, id = self.tool.domID;
 
     var url = "http://epe.marine.rutgers.edu/visualization/proxy_glider.php?request=getcast&deploymentid=" + deploymentId + "&castid=" + profileId;
 
@@ -1584,86 +1347,38 @@ EV3_Glider_Profile_Explorer.prototype.parseCastData = function ( deploymentId, p
         d[observation] = +d[observation];
 
     });
-
-//    ds.data.forEach( function ( d ) {
-//
-//        //foreach of the fields, convert to numbers
-//        for(var observation in self.observations){
-//
-//           d[observation] = +d[observation];
-//
-//            //console.log(observation,d[observation]);
-//        }
-//        d["depth"] = +d["depth"];
-//
-//    });
-
-}
-
-EV3_Glider_Profile_Explorer.prototype.dataDatasetInit = function ( station,variable,dateStart,dateEnd,url ) {
-    var self = this;
-    return {
-        "station":station,
-        "variable":variable,
-        "colY":self.observations[variable].column,
-        "colX":"date_time",
-        "dateStart":dateStart,
-        "dateEnd":dateEnd,
-        "url":url,
-        "isDrawReady":false
-    };
-
 }
 
 EV3_Glider_Profile_Explorer.prototype.transitionChart = function ( ){
 
     var self = this,
         datasets = self.tool.datasets,
-        id = self.tool.id_prefix,
         config = self.tool.configuration.custom,
-        chart = self.tool.chart,
-        c = self.tool.container,
+        units = self.observations[config.observation].units,
+        colX = config.observation,
+        colY = "depth",
+        ds = datasets[config.deployment][config.profile_id];
 
-        tooltip = self.tool.chart.tooltip,
+    self.parseCastData(config.deployment,config.profile_id,config.observation);
 
-        deploymentId = config.deployment,
-        profileId = config.profile_id,
-        observation = config.observation,
-
-        label = self.observations[observation].label,
-        units = self.observations[observation].units,
-
-        colX = observation,
-        colY = "depth";
-
-    // CONSOLE-OFF console.log("deploymentId",deploymentId,"profileId",profileId,"label",label,"units",units);
-
-    var ds = datasets[deploymentId][profileId];
-
-    self.parseCastData(deploymentId,profileId,observation);
-
-    // CONSOLE-OFF console.log("post process", ds)
-
-    var extentX = d3.extent(ds.data,function(d){return d[colX];});
-    var extentY = d3.extent(ds.data,function(d){return d[colY];});
-
-    // CONSOLE-OFF console.log("extents",extentX,extentY);
-
-    // draw timeseries 1
-
-    var lineX = d3.scale.linear().range([0, chart.layout.width_m]).domain(extentX);
-    var lineY = d3.scale.linear().range([ 0,chart.layout.height_m]).domain(extentY);
-
-    // todo: add test to see if x axis is drawn. set at tool level
-
-    var axisX =  d3.svg.axis().scale(lineX).orient("bottom").ticks(7);
-    var axisY = d3.svg.axis().scale(lineY).orient("left");
-
-    //d3.select("#" + id + "chart-title").text(label + " for Profile " + profileId + " of Deployment " + deploymentId  );
-
-    var line = d3.svg.line()
-        .x(function (d) {return lineX(d[colX]);})
-        .y(function (d) {return lineY(d[colY]);})
+    var extentX = d3.extent(ds.data,function(d){return d[colX];}),
+        extentY = d3.extent(ds.data,function(d){return d[colY];}),
+        lineX = d3.scale.linear()
+            .range([0, self.tool.chart.layout.width_m])
+            .domain(extentX),
+        lineY = d3.scale.linear()
+            .range([ 0,self.tool.chart.layout.height_m])
+            .domain(extentY),
+        axisX =  d3.svg.axis()
+            .scale(lineX)
+            .orient("bottom")
+            .ticks(7),
+        axisY = d3.svg.axis()
+            .scale(lineY)
+            .orient("left"),
+        line = d3.svg.line()
+            .x(function (d) {return lineX(d[colX]);})
+            .y(function (d) {return lineY(d[colY]);})
 
     self.g_path
         .transition().duration(1000)
@@ -1671,19 +1386,19 @@ EV3_Glider_Profile_Explorer.prototype.transitionChart = function ( ){
 
     // append circles w/ enter
     var enter_symbol1 = self.g_path_symbols
-        .selectAll("circle").data(ds.data)
+        .selectAll("circle").data(ds.data);
 
     enter_symbol1
         .enter().append("circle")
         .attr("r", 3.5)
         .style("fill", "#FFFFFF")
         .style("stroke", "#B94A48")
-        .style("stroke-width", 1)
+        .style("stroke-width", 1);
 
     enter_symbol1.transition().duration(1000)
         .attr("cx", function (d) {return lineX(d[colX]);})
         .attr("cy", function (d) {return lineY(d[colY]);})
-        .style("stroke", "#B94A48")
+        .style("stroke", "#B94A48");
 
     enter_symbol1.exit().remove();
 
@@ -1699,18 +1414,13 @@ EV3_Glider_Profile_Explorer.prototype.transitionChart = function ( ){
     d3.selectAll(".tick").style("stroke", "#000000").style("fill","none");
     d3.selectAll(".domain").style("stroke","#000000").style("fill","none");
 
-    d3.select("#" + id + "chart-x-axis-label").text(label);
+    d3.select("#" + self.tool.domID + "chart-x-axis-label")
+        .text(self.observations[config.observation].label);
 
     ds.isGraphed = true;
 
-    //self.img_loading_data.hide();
     //$("#" + id + "img_loading_data").hide();
 
-}
-
-EV3_Glider_Profile_Explorer.prototype.chart_refresh = function(){
-
-    var self = this;
 }
 
 EV3_Glider_Profile_Explorer.prototype.buffer_data = function (d) {
@@ -1723,7 +1433,7 @@ EV3_Glider_Profile_Explorer.prototype.buffer_data = function (d) {
 
 EV3_Glider_Profile_Explorer.prototype.customization_update = function () {
     // this function will update the config file which is used for subsequent calls and lookups
-    var self = this, id = this.tool.id_prefix;
+    var self = this, id = this.tool.domID;
 
     // todo: update config for EV 3 tool
 
@@ -1734,11 +1444,7 @@ EV3_Glider_Profile_Explorer.prototype.customization_update = function () {
         "observation": $("#"+ id + "dd-observations").val()
     };
 
-    //console.log(config_updates)
-
     $.extend(self.tool.configuration.custom,config_updates);
-
-    // CONSOLE-OFF console.log(self.tool.configuration.custom)
 
 };
 
