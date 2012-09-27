@@ -332,8 +332,6 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
 
 }
 
-
-
 EV3_Glider_Profile_Explorer.prototype.uiToolInterface = function() {
     "use strict";
 

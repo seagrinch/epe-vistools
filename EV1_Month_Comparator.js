@@ -723,7 +723,6 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                                             .append( ctrl_btn_addmonth )
                                     )
                         )
-
                     )
             );
 

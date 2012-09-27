@@ -172,7 +172,7 @@ var EV4_Advanced_Glider_Profile_Explorer = function (divId, customToolConfigurat
         datasets:{}
     };
 
-    this.evTool.configurationParse(self.tool.configuration.custom, customToolConfiguration );
+    this.evTool.configurationParse( self.tool.configuration.custom, customToolConfiguration );
 
     this.controls = {
 
@@ -226,10 +226,10 @@ var EV4_Advanced_Glider_Profile_Explorer = function (divId, customToolConfigurat
     this.uiControls();
 
     // retrieve deployment information
-    this.getDeployments( this.tool.configuration.custom.deployment);
+    this.getDeployments( this.tool.configuration.custom.deployment );
 
     // retrieve track information for the default deployment
-    this.getTrack( this.tool.configuration.custom.deployment,this.tool.configuration.custom.profile_id);
+    this.getTrack( this.tool.configuration.custom.deployment,this.tool.configuration.custom.profile_id );
 
 };
 
@@ -396,7 +396,6 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.uiToolInterface = function () {
         .attr("fill","none");
 
     // Profile Chart B containers for svg, svg:path, svg:g, and svg:rect
-
     chartB.svg = chartProfiles.append("svg")
         .attr("id", id + "-chartB-svg")
         .attr("width", profiles.properties.chartWidthB)
@@ -881,7 +880,6 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.uiControls = function () {
                 .css("text-align","center")
                 .html('<h3>Direction</h3>'+
                 '<div><img id="'+id+'-profile-info-direction" /></div>')
-
         )
             .append(
 
@@ -890,10 +888,8 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.uiControls = function () {
                 .css("text-align","center")
                 .html('<h3>Date</h3>'+
                 '<div><span id="'+id+'-profile-info-date"></span></div>')
-
         )
     );
-
 
     controls.ctrlDropdownObservationsSelectA = $("<select></select>")
         //.attr("id",id+"dd-observations")

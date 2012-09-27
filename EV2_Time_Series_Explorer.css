@@ -90,5 +90,19 @@ svg {
 }
 
 .datapoints-param1,.datapoints-param2 {
-  opacity:0;
+  /*opacity:0;*/
+}
+
+.kill-margin{
+    margin-left:5px !important;
+}
+
+.kill-padding{
+    padding-left:5px !important;
+    padding-right:5px !important;
+}
+
+.zero-padding-margin{
+    padding:0;
+    margin:0;
 }
