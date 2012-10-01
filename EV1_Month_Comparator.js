@@ -21,7 +21,7 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
         "title":"EV TOOL 1",
         "subtitle":"Month Comparator",
 
-        "station_list":["44025|LONG ISLAND 33","44027|Jonesport, Maine"],
+        "station_list":"44025|LONG ISLAND 33\n44027|Jonesport, Maine",
 
         // limited list, as per tool spec.. currently not selectable
         "observation_list":["sea_water_temperature", "sea_water_salinity"],
@@ -42,7 +42,6 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
             "winds"
         ],
 
-        //todo: conver to objects
         "datasets" : {
 
             "2009-01" : {
@@ -490,6 +489,8 @@ EV1_Month_Comparator.prototype.uiControls = function () {
             var tmpMonth = $("#" +  id + "-ctrl-dropdown-month").val(),
                 tmpYear = $("#" + id + "-ctrl-dropdown-year").val(),
                 tmpColor = $("#" + id + "-ctrl-colorpicker").val();
+
+            self.tool.configuration.custom.datasets[tmpYear + "-" + tmpMonth] = tmpYear + "-" + tmpMonth + "|1|" + tmpColor;
 
             self.requestData(tmpMonth,tmpYear,tmpColor);
 
@@ -1487,7 +1488,8 @@ EV1_Month_Comparator.prototype.updateStationAndObservation = function () {
 EV1_Month_Comparator.prototype.removeDataset = function ( datasetName ){
 
     var self = this,
-        id = self.tool.domID;
+        id = self.tool.domID,
+        datasets = self.tool.configuration.custom.datasets;
 
     // remove from legend
     $("#" + id + "-stats_legend_" + datasetName ).remove();
@@ -1506,6 +1508,8 @@ EV1_Month_Comparator.prototype.removeDataset = function ( datasetName ){
     });
 
     delete datasets[datasetName];
+
+    //self.tool.configuration.custom.datasets[tmpYear + "-" + tmpMonth] = tmpYear + "-" + tmpMonth + "|1|" + tmpColor;
 
     self.redrawY();
 };

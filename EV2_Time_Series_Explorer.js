@@ -26,16 +26,6 @@ var EV2_Time_Series_Explorer = function ( domID, customToolConfiguration ) {
         "param2": "sea_water_temperature"
     };
 
-    // Configuration Controls
-    this.controls = {
-        "station_list": {
-            "type": "textarea",
-            "label": "Station List",
-            "tooltip": "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.",
-            "default_value": "44025|LONG ISLAND 33\n44027|Jonesport, Maine"
-        }
-    }
-
     this.parameters = this.sos.getObservationObj(
         [
             "sea_water_temperature",
@@ -55,6 +45,17 @@ var EV2_Time_Series_Explorer = function ( domID, customToolConfiguration ) {
         configuration:{
             custom:self.configuration,
             default:self.configuration
+        },
+        controls:{}
+    }
+
+    // Configuration Controls
+    this.controls = {
+        "station_list": {
+            "type": "textarea",
+            "label": "Station List",
+            "tooltip": "Enter a list of NDBC stations in the format: <br><em>BuoyID|Label Name</em><br>Use a new line for each station.",
+            "default_value": this.tool.configuration.custom.station_list
         }
     }
 
@@ -75,6 +76,7 @@ EV2_Time_Series_Explorer.prototype.loadingDiv = function(){
     // Create a load
     $('#'+this.tool.domID).html('<img id="loading_'+ this.tool.domID + '" src=http://epe.marine.rutgers.edu/visualization/img/loading_a.gif" alt="Loading..."/>');
 }
+
 
 EV2_Time_Series_Explorer.prototype.uiToolInterface = function ( ) {
     "use strict";
@@ -304,6 +306,16 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .style("border", "1px solid #333333")
         .text("");
 
+    this.tool.controls.ctrl_dd_station1 = self.evtool.toolControl(this,"-ctrl-dataset-dropdown-station1",
+
+        {
+            "type": "dropdown",
+            "label": "Station",
+            "tooltip": "Select a Buoy from the options provided.",
+            "description": "Select a Buoy",
+            "default_value": configCustom.station1,
+            "options": dd_options_stations()
+        });
     //    interpolations:
     //        linear
     //        step-before
@@ -393,15 +405,32 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .attr("height", self.chart.layout.focus.height);
 
     this.d_legend = this.svg.append("g")
-        .attr("id", "legend")
+        .attr("id", id + "-legend")
         .attr("transform", "translate(" + self.chart.layout.legend.margin.left + "," + self.chart.layout.legend.margin.top + ")");
 
-    this.d_legend_station1 = this.d_legend.append("g")
+    this.d_legend_station1 = this.d_legend
+        .append("svg:g")
+        .attr("id", id + "-legend-g1")
         .attr("class", "legend")
-        .attr("fill", "#FFF").on("click", function (d) {
+        .attr("fill", "#FFF")
+        .on("mouseover",function(){
+
+            $("#" + id + "-legend-station1-edit").show();
+        })
+        .on("click", function (d) {
             self.station_toggle(this, "station1")
-        });
-    //   .on("mouseover",function(d){alert("add highlight?")})
+        })
+
+    this.d_legend_station1.append("svg:rect")
+        .attr("width", 220)
+        .attr("height", 20)
+        .attr("x", 70)
+        .attr("y", -18)
+
+        .attr("fill","#F8F8F8")
+
+
+
     this.d_legend_station1.append("svg:circle")
         .attr("id", "legend-station1-circle")
         .attr("class", "legend_station")
@@ -411,12 +440,44 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .attr("cy", "0")
         .attr("r", "6")
 
-    this.d_legend_station1.append("g").append("svg:text")
+    this.d_legend_station1.append("svg:text")
         .attr("id", "legend-station1-text")
         .style("fill", "#000")
         .text(self.stations[self.tool.configuration.custom.station1].name)
         .attr("x", "115")
         .attr("y", "2")
+
+    this.d_legend_station1.append("svg:image")
+        .attr("id", id + "-legend-station1-edit")
+        .attr("xlink:href","../../img/icon-settings.png")
+        .attr("width",24)
+        .attr("height",24)
+        .attr("x", "225")
+        .attr("y", "-12")
+
+    $("#" + id + "-legend-station1-edit")
+        .popover(
+            {
+                title    : 'Select a Station',
+                content     : '',
+                placement : "bottom",
+                trigger  : "manual",
+                //template: '<div class="popover"><div class="arrow"></div><div class="popover-inner"><div><h3 class="popover-title"><i class="icon icon-close"></i></div></h3><div class="popover-content"><p></p></div></div></div>'
+                template: '<div class="popover" onmouseover="$(this).mouseleave(function() {$(this).hide(); });"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><div id="' + id + '-legend-station1-popover' +'"></div></div></div></div>'
+
+            }
+        )
+        .on("click",function(evt){
+
+            $(this).popover('show');
+            $("#" + self.tool.domID + "-legend-station1-popover")
+
+                .html(self.tool.controls.ctrl_dd_station1);
+
+             evt.stopPropagation();
+
+        })
+
 
     this.d_legend_station2 = this.d_legend.append("g")
         .attr("class", "legend")
@@ -477,8 +538,44 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .attr("shape-rendering", "crispEdges");
 
     this.d_focus = this.svg.append("g")
-        .attr("id", "focus-g")
+        .attr("id", "-focus-g")
         .attr("transform", "translate(" + self.chart.layout.focus.margin.left + "," + self.chart.layout.focus.margin.top + ")");
+
+    this.g_dateStart = this.svg.append("g")
+        .attr("id", "-g-ctrl-dateStart")
+        .attr("transform", "translate(" + 0 + "," + self.chart.layout.context.margin.top + ")");
+
+    this.g_dateStart
+        .append("svg:text")
+        .text("Start Date")
+        .attr("font-weight","bold")
+        .attr("x",2)
+        .attr("y",2);
+
+    this.g_dateStart
+        .append("svg:text")
+        .text(self.tool.configuration.custom.date_start)
+        .attr("font-weight","bold")
+        .attr("x",2)
+        .attr("y",20);
+
+    this.g_dateEnd = this.svg.append("g")
+        .attr("id", "-g-ctrl-dateEnd")
+        .attr("transform", "translate(" + (self.chart.layout.context.margin.left + self.chart.layout.context.width) + "," + self.chart.layout.context.margin.top + ")");
+
+    this.g_dateEnd
+        .append("svg:text")
+        .text("End Date")
+        .attr("font-weight","bold")
+        .attr("x",2)
+        .attr("y",2);
+
+    this.g_dateEnd
+        .append("svg:text")
+        .text( self.tool.configuration.custom.date_end)
+        .attr("font-weight","bold")
+        .attr("x",2)
+        .attr("y",20);
 
     tool_container.append("div")
         .attr("id", "controls-div")
@@ -610,7 +707,7 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .append(ctrl_date_end)
         .appendTo("#modal-body-dates");
 
-    var ctrl_dd_station1 = self.evtool.toolControl(self,"ctrl-dataset-dropdown-station1",
+    ctrl_dd_station1 = self.evtool.toolControl(self,"ctrl-dataset-dropdown-station1",
 
         {
             "type": "dropdown",
@@ -1259,6 +1356,7 @@ EV2_Time_Series_Explorer.prototype.transition_data = function (param) {
 };
 
 EV2_Time_Series_Explorer.prototype.customization_update = function () {
+
     // this function will update the config file which is used for subsequent calls and lookups
     var self = this,
         config = self.tool.configuration.custom;
