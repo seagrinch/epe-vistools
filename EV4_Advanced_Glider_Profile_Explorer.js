@@ -31,9 +31,10 @@ var EV4_Advanced_Glider_Profile_Explorer = function (divId, customToolConfigurat
     this.evTool = new EVTool();
 
     /***************************************/
-    // SETTINGS - Parameters
+    // SETTINGS - Parameters`
     /***************************************/
 
+    // todo: move to ev_tools.. similar to ndbc data parameters
     this.observations = {
 
         "sea_water_temperature":{
@@ -137,14 +138,29 @@ var EV4_Advanced_Glider_Profile_Explorer = function (divId, customToolConfigurat
 //    };
 
     // default tool configuration
+    // 10/2012 updates to configuration
+    // dropdown options now controls in configuration
+
     this.configuration = {
 
         "title":"EV TOOL 4",
         "subtitle":"Advanced Glider Profile Explorer",
         "deployment":"246",
         "profile_id":"1",
-        "observationA":"sea_water_temperature",
-        "observationB":"sea_water_salinity"
+
+        //"observationA":"sea_water_temperature",
+        //"observationB":"sea_water_salinity",
+
+        "observationA":{
+            "observation":"sea_water_temperature",
+            //"default_value":self.tool.configuration.custom.observationA,
+            "options":{}
+        },
+        "observationB":{
+            "observation":"sea_water_salinity",
+            //"default_value":self.tool.configuration.custom.observationB,
+            "options":{}
+        }
 
     };
 
@@ -181,38 +197,39 @@ var EV4_Advanced_Glider_Profile_Explorer = function (divId, customToolConfigurat
             "label":"Deployment ID",
             "tooltip":"Enter the default deployment id.",
             "default_value":self.tool.configuration.custom.deployment
-        },
-        "profile_id":{
-            "type":"textbox",
-            "label":"Profile ID",
-            "tooltip":"Enter the default profile id.",
-            "default_value":self.tool.configuration.custom.profile
-        },
-        "observationA":{
-            "type":"dropdown",
-            "label:":"Observation A",
-            "tooltip":"Select the default observation for chart A.",
-            "default_value":self.tool.configuration.custom.observationA,
-            "options":{}
-        },
-        "observationB":{
-            "type":"dropdown",
-            "label:":"Observation B",
-            "tooltip":"Select the default observation for chart B.",
-            "default_value":self.tool.configuration.custom.observationB,
-            "options":{}
         }
+//        ,
+//        "profile_id":{
+//            "type":"textbox",
+//            "label":"Profile ID",
+//            "tooltip":"Enter the default profile id.",
+//            "default_value":self.tool.configuration.custom.profile
+//        },
+//        "observationA":{
+//            "type":"dropdown",
+//            "label:":"Observation A",
+//            "tooltip":"Select the default observation for chart A.",
+//            "default_value":self.tool.configuration.custom.observationA,
+//            "options":{}
+//        },
+//        "observationB":{
+//            "type":"dropdown",
+//            "label:":"Observation B",
+//            "tooltip":"Select the default observation for chart B.",
+//            "default_value":self.tool.configuration.custom.observationB,
+//            "options":{}
+//        }
     };
 
     // set the control observation dropdowns
-    $.each( this.observations,function( i,observation ){
+    $.each( this.observations, function( i, observation ){
 
-        self.controls.observationA.options[i]={
+        self.tool.configuration.custom.observationA.options[i]={
             "name": observation.name,
             "value":i
         }
 
-        self.controls.observationB.options[i]={
+        self.tool.configuration.custom.observationB.options[i]={
             "name": observation.name,
             "value":i
         }
@@ -324,8 +341,8 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.uiToolInterface = function () {
 
     //tooltips
     ui.tooltips = $("<div></div>")
-        .attr("id",id + "-tooltip")
-        .css({"position":"absolute","z-index":"10","visibility":"hidden"})
+        .attr("id", id + "-tooltip")
+        .css({"position":"absolute", "z-index":"10","visibility":"hidden"})
         .text("");
     ui.container.div.append(ui.tooltips);
 
@@ -440,7 +457,7 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.uiToolInterface = function () {
         .attr("y",scatterplots.properties.yAxisLabelWidth/2)
         .attr("fill","purple")
         .attr("text-anchor","middle")
-        .text(self.observations[config.observationA].label);
+        .text(self.observations[config.observationA.observation].label);
 
     chartC.svg = chartScatterplot.append("svg")
         .attr("id", id + "-scatterplot-svg")
@@ -705,6 +722,7 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.userInterfaceDimensions = functio
 };
 
 EV4_Advanced_Glider_Profile_Explorer.prototype.uiControls = function () {
+
     var self = this,
         id= self.tool.domID,
         config = self.tool.configuration.custom,
@@ -798,7 +816,7 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.uiControls = function () {
                             // CONSOLE-OFF console.log("here we can possibly highlight the profile as we slide across")
                             //$("#" + id + "profile-selection").html(
                             $("#" + id + "-profile-info-id").html(
-                                self.tool.datasets[self.tool.configuration.custom.deployment].profiles[ui.value].profile_id
+                                self.tool.datasets[config.deployment].profiles[ui.value].profile_id
                             );
 
                         },
@@ -1090,8 +1108,8 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.getCast = function (deploymentId,
 
         //$("#" + id + "profile-info-records").html(data.length);
 
-        self.transitionChartProfile("a",self.tool.configuration.custom.observationA);
-        self.transitionChartProfile("b",self.tool.configuration.custom.observationB);
+        self.transitionChartProfile("a",self.tool.configuration.custom.observationA.observation);
+        self.transitionChartProfile("b",self.tool.configuration.custom.observationB.observation);
 
         self.transitionChartScatterplot("a");
 
@@ -1281,8 +1299,8 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.transitionChartScatterplot = func
     var self = this,
         datasets = self.tool.datasets,
         config = self.tool.configuration.custom,
-        obsA = config.observationA,
-        obsB = config.observationB,
+        obsA = config.observationA.observation,
+        obsB = config.observationB.observation,
         obsObjA = self.observations[obsA],
         obsObjB = self.observations[obsB],
         unitsA = obsObjA.units,
@@ -1400,20 +1418,14 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.transitionChartScatterplot = func
 
 EV4_Advanced_Glider_Profile_Explorer.prototype.customizationUpdate = function ( ) {
     // this function will update the config file which is used for subsequent calls and lookups
-    var self = this, id = this.tool.domID,controls = self.tool.ui.controls;
+    var self = this,
+        id = this.tool.domID,
+        controls = self.tool.ui.controls,
+        configCustom = self.tool.configuration.custom;
 
     // todo: update config for EV
-
-    var config_updates = {
-
-        //"deployment":$("#" + id + "ctrl-deployment").val(),
-        //"cast":"1",
-        "observationA": controls.ctrlDropdownObservationsSelectA.val(),
-        "observationB": controls.ctrlDropdownObservationsSelectB.val()
-
-    };
-
-    $.extend(self.tool.configuration.custom,config_updates);
+    configCustom.observationA.observation = controls.ctrlDropdownObservationsSelectA.val();
+    configCustom.observationB.observation = controls.ctrlDropdownObservationsSelectB.val();
 
 };
 
@@ -1461,7 +1473,10 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.chartMouseout = function () {
 
 EV4_Advanced_Glider_Profile_Explorer.prototype.updateDropdownObservations = function( a ){
 
-    var self = this,id = "#"+self.tool.id_prefix, config = self.tool.configuration.custom, controls = self.tool.ui.controls;
+    var self = this,
+        id = "#"+ self.tool.id_prefix,
+        config = self.tool.configuration.custom,
+        controls = self.tool.ui.controls;
 
     console.log("this, this.parent", this, this.parent);
 
@@ -1474,21 +1489,21 @@ EV4_Advanced_Glider_Profile_Explorer.prototype.updateDropdownObservations = func
     $.each(self.observations, function (observation) {
 
         controls.ctrlDropdownObservationsSelectA
-            .append( new Option(self.observations[observation].label,observation) );
+            .append( new Option(self.observations[observation].label, observation) );
 
         controls.ctrlDropdownObservationsSelectB
-            .append( new Option(self.observations[observation].label,observation) );
+            .append( new Option(self.observations[observation].label, observation) );
 
     });
 
-    controls.ctrlDropdownObservationsSelectA.val(config.observationA);
-    controls.ctrlDropdownObservationsSelectB.val(config.observationB);
+    controls.ctrlDropdownObservationsSelectA.val(obsA.observation);
+    controls.ctrlDropdownObservationsSelectB.val(obsB.observation);
 
     controls.ctrlDropdownObservationsSelectA
-        .filter('option[value="' + config.observationB + '"]').remove();
+        .filter('option[value="' + obsB.observation + '"]').remove();
 
     controls.ctrlDropdownObservationsSelectB
-        .filter('option[value="' + config.observationA + '"]').remove();
+        .filter('option[value="' + obsA.observation + '"]').remove();
 
 
     //$("#" + id + '-control-dropdown-observationA > option[value="' + controls.ctrlDrop.val() + '"]').remove();
