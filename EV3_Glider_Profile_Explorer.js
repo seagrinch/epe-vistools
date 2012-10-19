@@ -575,17 +575,17 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                 $("<li></li>")
                     .addClass("pager previous")
                     .append(
-                    $("<a></a>")
-                        .html("&larr;")
-                        .on("click",function(){
+                        $("<a></a>")
+                            .html('<i class="icon-arrow-left"></i>')
+                            .on("click",function(){
 
-                            var slider = $("#"+ self.tool.domID+"profile-slider");
-                            var val = slider.slider("option","value");
+                                var slider = $("#"+ self.tool.domID+"profile-slider");
+                                var val = slider.slider("option","value");
 
-                            if ( val != slider.slider("option","min")){
-                                slider.slider("value", val - 1 )
-                            }
-                        })
+                                if ( val != slider.slider("option","min")){
+                                    slider.slider("value", val - 1 )
+                                }
+                            })
                 )
             )
         )
@@ -633,8 +633,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                     .addClass("pager next")
                     .append(
                     $("<a></a>")
-                        //.attr("href","#")
-                        .html("&rarr;")
+                        .html('<i class="icon-arrow-right"></i>')
                         .on("click",function(){
 
                             var slider = $("#"+ self.tool.domID+"profile-slider");
