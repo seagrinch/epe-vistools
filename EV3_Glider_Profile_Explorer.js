@@ -17,107 +17,163 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
     // SETTINGS - Parameters
     /***************************************/
 
+
+
+    // obsdate,latitude,longitude,depth,tempwat,condwat,pracsal,density,optparw,flubsct,cdomflo,chlaflo,doconcs
+
+        // obsdate,latitude,longitude,depth,
+        // tempwat, sea_water_temperature
+        // condwat,
+        // pracsal, sea_water_salinity
+        // density, sea_water_density
+        // optparw,
+        // flubsct,
+        // cdomflo, sci_bbfl2s_cdom_scaled
+        // chlaflo, sci_bbfl2s_chlor_scaled
+        // doconcs
+
+// original
+//    this.observations = {
+//
+//        "sea_water_temperature":{
+//            "name":"Seawater Temperature",
+//            "label":"Seawater Temperature (C)",
+//            "column":"sea_water_temperature (C)",
+//            "units":"&deg;C",
+//            "units2":"Degrees Celcius"
+//        },
+//        "sea_water_salinity":{
+//            "name":"Seawater Salinity",
+//            "label":"Seawater Salinity",
+//            "column":"sea_water_salinity (psu)",
+//            "units":"",
+//            "units2":""
+//        },
+//        "sea_water_density":{
+//            "name":"Seawater Density",
+//            "label":"Seawater Density (kg m^-3)",
+//            "column":"sea_water_density",
+//            "units":"(kg m^-3)",
+//            "units2":"m^-3"
+//        },
+//        "sci_bb3slo_b470_scaled":{
+//            "name":"Volume Scattering",
+//            "label":"Volume Scattering",
+//            "column":"sci_bb3slo_b470_scaled",
+//            "units":"",
+//            "units2":""
+//        },
+//        "sci_bb3slo_b532_scaled":{
+//            "name":"Volume Scattering",
+//            "label":"Volume Scattering",
+//            "column":"sci_bb3slo_b532_scaled",
+//            "units":"",
+//            "units2":""
+//        },
+//        "sci_bb3slo_b660_scaled":{
+//            "name":"Volume Scattering",
+//            "label":"Volume Scattering",
+//            "column":"sci_bb3slo_b660_scaled",
+//            "units":"",
+//            "units2":""
+//        },
+//        "sci_bbfl2s_cdom_scaled":{
+//            "name":"CDOM",
+//            "label":"CDOM (µg L-1)",
+//            "column":"sci_bbfl2s_cdom_scaled",
+//            "units":"(ppb)",
+//            "units2":"ppb"
+//        },
+//        "sci_bbfl2s_chlor_scaled":{
+//            "name":"Chlorophyll",
+//            "label":"Chlorophyll (µg L-1)",
+//            "column":"sci_bbfl2s_chlor_scaled",
+//            "units":"(µg L-1)",
+//            "units2":"µg L-1"
+//        }
+//    };
+
     this.observations = {
 
-        "sea_water_temperature":{
-            "name":"Seawater Temperature",
-            "label":"Seawater Temperature (C)",
-            "column":"sea_water_temperature (C)",
-            "units":"&deg;C",
-            "units2":"Degrees Celcius"
+        "tempwat"   : {
+            "name"   : "Seawater Temperature",
+            "label"  : "Seawater Temperature (C)",
+            "column" : "sea_water_temperature (C)",
+            "units"  : "&deg;C",
+            "units2" : "Degrees Celcius"
         },
-        "sea_water_salinity":{
-            "name":"Seawater Salinity",
-            "label":"Seawater Salinity",
-            "column":"sea_water_salinity (psu)",
-            "units":"",
-            "units2":""
+        "pracsal"      : {
+            "name"   : "Seawater Salinity",
+            "label"  : "Seawater Salinity",
+            "column" : "sea_water_salinity (psu)",
+            "units"  : "",
+            "units2" : ""
         },
-        "sea_water_density":{
-            "name":"Seawater Density",
-            "label":"Seawater Density (kg m^-3)",
-            "column":"sea_water_density",
-            "units":"(kg m^-3)",
-            "units2":"m^-3"
+        "density"       : {
+            "name"   : "Seawater Density",
+            "label"  : "Seawater Density (kg m^-3)",
+            "column" : "sea_water_density",
+            "units"  : "(kg m^-3)",
+            "units2" : "m^-3"
         },
-        "sci_bb3slo_b470_scaled":{
-            "name":"Volume Scattering",
-            "label":"Volume Scattering",
-            "column":"sci_bb3slo_b470_scaled",
-            "units":"",
-            "units2":""
+        "cdomflo"  : {
+            "name"   : "CDOM",
+            "label"  : "CDOM (µg L-1)",
+            "column" : "sci_bbfl2s_cdom_scaled",
+            "units"  : "(ppb)",
+            "units2" : "ppb"
         },
-        "sci_bb3slo_b532_scaled":{
-            "name":"Volume Scattering",
-            "label":"Volume Scattering",
-            "column":"sci_bb3slo_b532_scaled",
-            "units":"",
-            "units2":""
-        },
-        "sci_bb3slo_b660_scaled":{
-            "name":"Volume Scattering",
-            "label":"Volume Scattering",
-            "column":"sci_bb3slo_b660_scaled",
-            "units":"",
-            "units2":""
-        },
-        "sci_bbfl2s_cdom_scaled":{
-            "name":"CDOM",
-            "label":"CDOM (µg L-1)",
-            "column":"sci_bbfl2s_cdom_scaled",
-            "units":"(ppb)",
-            "units2":"ppb"
-        },
-        "sci_bbfl2s_chlor_scaled":{
-            "name":"Chlorophyll",
-            "label":"Chlorophyll (µg L-1)",
-            "column":"sci_bbfl2s_chlor_scaled",
-            "units":"(µg L-1)",
-            "units2":"µg L-1"
+        "chlaflo" : {
+            "name"   : "Chlorophyll",
+            "label"  : "Chlorophyll (µg L-1)",
+            "column" : "sci_bbfl2s_chlor_scaled",
+            "units"  : "(µg L-1)",
+            "units2" : "µg L-1"
         }
+
     };
 
-    this.webservice = {
-
-        fields:{
-            "deployment":["id","name","start_time","end_time","casts"],
-            "tracks":["deployment_id","obsdate","latitude","longitude","profile_id","direction"],
-            "casts":["deployment_id","obsdate","depth","latitude","longitude","sea_water_temperature","sea_water_salinity","sea_water_density","sci_bb3slo_b470_scaled","sci_bb3slo_b532_scaled","sci_bb3slo_b660_scaled","sci_bbfl2s_cdom_scaled","sci_bbfl2s_chlor_scaled","profile_id","direction"]
-        },
-        getdeployments:{
-            "id":"id",
-            "Name":"name",
-            "Start Time":"start_time",
-            "End Time":"end_time",
-            "Cast Count":"casts"
-        },
-        gettracks:{
-            "Deployment ID":"deployment_id",
-            "Observation Data":"obsdate",
-            "Latitude":"latitude",
-            "Longitude":"longitude",
-            "Profile Id":"profile_id",
-            "Direction":"direction"
-        },
-        getcast:{
-            "Deployment ID":"deployment_id",
-            "Observation Date":"obsdate",
-            "Depth":"depth",
-            "Latitude":"latitude",
-            "Longitude":"longitude",
-            "Seawater Temperature":"sea_water_temperature",
-            "Seawater Salinity":"sea_water_salinity",
-            "Seawater Density":"sea_water_density",
-            "Volume Scattering":"sci_bb3slo_b470_scaled",
-            "Volume ScatteringB":"sci_bb3slo_b532_scaled",
-            "Volume ScatteringC":"sci_bb3slo_b660_scaled",
-            "CDOM":"sci_bbfl2s_cdom_scaled",
-            "Chlorophyll":"sci_bbfl2s_chlor_scaled",
-            "Profile ID":"profile_id",
-            "Direction":"direction"
-
-        }
-    }
+//    this.webservice = {
+//
+//        fields:{
+//            "deployment":["id","name","start_time","end_time","casts"],
+//            "tracks":["deployment_id","obsdate","latitude","longitude","profile_id","direction"],
+//            "casts":["deployment_id","obsdate","depth","latitude","longitude","sea_water_temperature","sea_water_salinity","sea_water_density","sci_bb3slo_b470_scaled","sci_bb3slo_b532_scaled","sci_bb3slo_b660_scaled","sci_bbfl2s_cdom_scaled","sci_bbfl2s_chlor_scaled","profile_id","direction"]
+//        },
+//        getdeployments:{
+//            "id":"id",
+//            "Name":"name",
+//            "Start Time":"start_time",
+//            "End Time":"end_time",
+//            "Cast Count":"casts"
+//        },
+//        gettracks:{
+//            "Deployment ID":"deployment_id",
+//            "Observation Data":"obsdate",
+//            "Latitude":"latitude",
+//            "Longitude":"longitude",
+//            "Profile Id":"profile_id",
+//            "Direction":"direction"
+//        },
+//        getcast:{
+//            "Deployment ID":"deployment_id",
+//            "Observation Date":"obsdate",
+//            "Depth":"depth",
+//            "Latitude":"latitude",
+//            "Longitude":"longitude",
+//            "Seawater Temperature":"sea_water_temperature",
+//            "Seawater Salinity":"sea_water_salinity",
+//            "Seawater Density":"sea_water_density",
+//            "Volume Scattering":"sci_bb3slo_b470_scaled",
+//            "Volume ScatteringB":"sci_bb3slo_b532_scaled",
+//            "Volume ScatteringC":"sci_bb3slo_b660_scaled",
+//            "CDOM":"sci_bbfl2s_cdom_scaled",
+//            "Chlorophyll":"sci_bbfl2s_chlor_scaled",
+//            "Profile ID":"profile_id",
+//            "Direction":"direction"
+//
+//        }
+//    }
 
     // stations object is populated from the configuration list and overridden with the user configuration
     this.stations = {};
@@ -127,9 +183,9 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
         "title":"EV TOOL 3",
         "subtitle":"Glider Profile Explorer",
-        "deployment":"246",
-        "profile_id":"1",
-        "observation":"sea_water_temperature",
+        "deployment":"221",
+        "profile_id":"1934",
+        "observation":"tempwat",
         "observation_list":"" //?
 
     };
@@ -140,24 +196,24 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
         "container":{
             "layout":{
                 "margin":{"top":20, "right":0, "bottom":0, "left":0},
-                "width":860,
-                "height":570
+                "width":0,
+                "height":540
             }
         },
         "controls":{
             "layout":{
-                "margin":{"top":10, "right":10, "bottom":0, "left":20},
-                "width":420
+                "margin":{"top":10, "right":10, "bottom":0, "left":20}
+
             }
         },
         "chart":{
             "axis":{},
             "layout":{
-                "margin":{"top":40, "right":10, "bottom":20, "left":60}
+                "margin":{"top":20, "right":10, "bottom":30, "left":60}
             }
         },
         "map":{
-            "layout":{"height":270}
+            "layout":{"height":290}
         },
         "formats":{
             "tooltip_num" : d3.format("g"),
@@ -194,6 +250,21 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
     this.trackMap = {};
 
+    this.tool.ui = {
+        uiContainer:{},
+        uiControls:{},
+        uiChart:{}
+    }
+
+    // set interface container and get dimensions for layout
+    this.uiToolInterface();
+
+    // calculate dimensions for the remaining tool parts
+    this.uiDimensions();
+
+    // draw chart
+    this.uiChart();
+
     // request esri arcgis jsapi, callback will requires esri.map,  continue loading tool
 
     $.getScript("http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.0compact", function(data, textStatus, jqxhr) {
@@ -214,15 +285,6 @@ EV3_Glider_Profile_Explorer.prototype.loadDeferred = function (config_override) 
     // continue loading tool once arcgis jsapi is called and dojo is required.
 
     var self = this;
-
-    // set interface container and get dimensions for layout
-    this.uiToolInterface();
-
-    // calculate dimensions for the remaining tool parts
-    this.uiDimensions();
-
-    // draw chart
-    this.uiChart();
 
     // draw ALL UI CONTROLS
     this.uiControls();
@@ -315,9 +377,11 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
 
         // add graphics layers to the map
         self.trackMap.map.addLayer( self.trackMap.glTrack);
-        self.trackMap.map.addLayer( self.trackMap.glProfilesUp);
         self.trackMap.map.addLayer( self.trackMap.glProfilesDown);
+        self.trackMap.map.addLayer( self.trackMap.glProfilesUp);
         self.trackMap.map.addLayer( self.trackMap.glProfileSelected);
+
+        //self.trackMap.glTrack
 
         // map event listening funcitons
         function showCoordinates(evt) {
@@ -335,15 +399,57 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
 EV3_Glider_Profile_Explorer.prototype.uiToolInterface = function() {
     "use strict";
 
-    var self = this, id = self.tool.domID;
+    var self = this, id = self.tool.domID, ui = self.tool.ui;
 
-    self.tool_container = d3.select("#" + id) //"#" + id + "tool")
-        .append("div")
-        .attr("id", id + "-tool-container")
-        .style("margin-left", self.tool.container.layout.margin.left+ "px");
 
-    self.tool.container.layout.width = $("#"+id + "-tool-container").width() - 40;
-    self.tool.controls.layout.width = self.tool.container.layout.width / 2 - 40;
+    ui.uiControls = $("<div></div>")
+        .attr("id", id + "-uiControls")
+        .addClass("span6")
+
+    ui.uiChart = $("<div></div>")
+        .attr("id", id + "-uiChart")
+        .addClass("span6")
+
+    ui.uiContainer.div = $("<div></div>")
+        .attr("id",id + "-tool-container")
+        .css({
+            "border":"2px solid #666666",
+            "-moz-border-radius": "5px",
+            "border-radius": "5px"
+        })
+        .addClass("container-fluid")
+        .append(
+            $("<div></div>")
+                .addClass("row-fluid")
+                .append(
+                $("<div></div>")
+                    .addClass("span12")
+                    .attr("id", id + "-title")
+                    .append(
+                    $("<h2></h2>").html("Glider Profile Explorer").css("border-bottom","2px solid #CCCCCC")
+                )
+            )
+        )
+        .append(
+            $("<div></div>")
+                .css({
+                    "height":"500px",
+                    "margin-top":"6px"
+                })
+                .addClass("row-fluid")
+
+                .append(ui.uiControls)
+                .append(ui.uiChart)
+
+        )
+
+    $("#" + id).append(ui.uiContainer.div);
+
+    ui.uiChart.width = $(ui.uiChart).width();
+    ui.uiControls.width = $(ui.uiControls).width();
+
+
+    self.tool_container = d3.select("#" + id); //"#" + id + "tool")
 
 };
 
@@ -353,18 +459,17 @@ EV3_Glider_Profile_Explorer.prototype.uiDimensions = function() {
 
     var self = this,
         container = self.tool.container.layout,
-        chart = self.tool.chart.layout,
-        controls = self.tool.controls.layout;
+        chart = self.tool.chart.layout;
 
     // some calculations for width and height minus margins
-    container.width_m = container.width - container.margin.left - container.margin.right;
+    //container.width_m = container.width - container.margin.left - container.margin.right;
     container.height_m = container.height - container.margin.top - container.margin.bottom;
 
-    chart.height = container.height_m;// - chart.margin.top - chart.margin.bottom;
+    chart.height = container.height_m;
     chart.height_m = chart.height - chart.margin.top - chart.margin.bottom;
 
-    chart.width = container.width_m - controls.width;
-    chart.width_m = chart.width - chart.margin.left - chart.margin.right;
+    chart.width = self.tool.ui.uiChart.width;
+    chart.width_m = self.tool.ui.uiChart.width - chart.margin.left - chart.margin.right;
 
 }
 
@@ -386,23 +491,12 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
         .style("visibility", "hidden")
         .text("");
 
-    self.d_controls = self.tool_container.append("div")
-        .attr("id", id + "controls-container")
-        //.style("margin-top", container.layout.margin.top)
-        .append("div")
-        .attr("id", id + "controls-div")
-        .style("float", "left")
-        .style("height",container.layout.height + "px")
-        .style("width", controls.layout.width + "px")
-        .style("margin","10px 10px 10px 10px")
-
-    // DomElement: svg container
-    self.svg = self.tool_container.append("div")
-        .attr("id",id + "chart_container")
+    self.svg = d3.select("#"+ id + "-uiChart").append("div")
+        .attr("id",id + "-chart_container")
         .append("svg")
-        .attr("id", id + "svg-main")
+        .attr("id", id + "-svg-main")
         .attr("width", chart.layout.width)
-        .attr("height", container.layout.height);
+        .attr("height", chart.layout.height);
 
     //border svg rectangle
     self.svg.append("rect")
@@ -456,7 +550,7 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
     // container for all labels
     self.g_labels = self.svg.append("g")
         .attr("width",chart.layout.width)
-        .attr("height",container.layout.height + 30)
+        .attr("height",container.layout.height)
         .attr("id", id + "g-labels")
 
     // CONSOLE-OFF console.log("width:", chart.layout.width)
@@ -472,29 +566,64 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
 //            .attr("y", chart.layout.margin.top/3)
 //            .attr("class", "chart-title");
 
-    // DomElement: x-axis label
-    self.g_labels.append("svg:text")
-        .attr("id", id + "chart-x-axis-label")
-        //.attr("width",chart.layout.width)
-        .text("x-axis")
-        .attr("text-anchor", "middle")
-        .attr("stroke-width", 2)
-        .attr("fill","#b94a48")
-        .attr("x", chart.layout.margin.left + chart.layout.width_m/2)
-        .attr("y", chart.layout.height + chart.layout.margin.bottom - 4 )
-        .attr("class", "chart-label-x")
-        .on("click",function(d){
+//    // DomElement: x-axis label
+//    self.g_labels.append("svg:text")
+//        .attr("id", id + "chart-x-axis-label")
+//        //.attr("width",chart.layout.width)
+//        .text("x-axis")
+//        .attr("text-anchor", "middle")
+//        .attr("stroke-width", 2)
+//        .attr("fill","#b94a48")
+//        .attr("x", chart.layout.margin.left + chart.layout.width_m/2)
+//        .attr("y", chart.layout.height)
+//        .attr("class", "chart-label-x")
+//        .on("click",function(d){
+//
+//            var position = $(this).position();
+//
+//            // get the top left position of the
+//            d3.select("#"+id+"ctrl-observations")
+//                .style("visibility","visible")
+//                .style("top", (position.top - 2) + "px")
+//                .style("left", (position.left - 5 ) + "px");
+//
+//            $(this).css("visibility","hidden");
+//        })
 
-            var position = $(this).position();
+    var ctrl_dd_observations_select = $("<select></select>")
+        .attr("id",id+"-dd-observations")
+        .change(function(a){
 
-            // get the top left position of the
-            d3.select("#"+id+"ctrl-observations")
-                .style("visibility","visible")
-                .style("top", (position.top - 2) + "px")
-                .style("left", (position.left - 5 ) + "px");
+            self.customization_update();
+            self.transitionChart();
 
-            $(this).css("visibility","hidden");
-        })
+            //$(this).parent().css("visibility","hidden");
+
+            $("#" + id + "chart-x-axis-label").css("visibility","visible");
+        });
+
+    $.each(self.observations,function(observation){
+        var obs = self.observations[observation];
+
+        $(ctrl_dd_observations_select)
+            .append(
+            $('<option></option>')
+                .val(observation)
+                .html(obs.label)
+            //.html(obs.name)
+            // obs.name can be used in place of obs.label
+        );
+    });
+
+
+    $("#" + id + "-chart_container")
+        .append(
+            $("<div></div>")
+                .css({"text-align":"center","margin-left": self.tool.chart.layout.margin.left + 'px'})
+                .append(
+                    ctrl_dd_observations_select
+                )
+    )
 
     // DomElement: y-axis label left
     self.g_labels.append("svg:text")
@@ -513,7 +642,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
         container = self.tool.container.layout,
         id= self.tool.domID,
         config = self.tool.configuration.custom,
-        controls = self.tool.controls.layout;
+        uiControls = self.tool.ui.uiControls;
 
     var ctrl_deployment_info = $("<div></div>")
 
@@ -596,7 +725,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                 .append(
                 $("<div></div>")
 
-                    .attr("id",id+"profile-slider")
+                    .attr("id",id + "profile-slider")
                     .slider({
                         slide: function(event, ui) {
                             // CONSOLE-OFF console.log("here we can possibly highlight the profile as we slide across")
@@ -646,7 +775,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                 )
             )
         )
-    )
+    );
 
     var ctrl_trackMap = $("<div></div>")
         .addClass("ctrl map")
@@ -668,15 +797,16 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
         $("<div></div>")
             .attr("id",id + "track-map-legend")
             .append(
-            $('<svg height="24" width="'+ self.tool.controls.layout.width+'">' + //' +  controls.width - 40 + '
-                '<g transform="translate(240,0)" id="' + id + 'svgMapToggleUp" >' +
-                '<circle cx="8" cy="9" r="6" stroke="#FF0000" stroke-width="2px" fill="#FF0000" ></circle>' +
-                '<text x="18" y="14">Up Casts</text></g>' +
-                '<g transform="translate(240,0)" id="' + id + 'svgMapToggleDown">' +
-                '<rect x="84" y="4" width="10" height="10" fill="#00FF00" stroke="#00FF00" stroke-width="2"></rect>' +
-                '<text x="100" y="14">Down Casts</text></g>' +
-                '</svg>')
-        )
+                $('<button class="btn btn-mini" type="button" style="float:left;margin-top:3px;" id="' + id + '-mapZoomExtent"><i class="icon-zoom-in"></i> Zoom To Track Extent</button>' +
+                    '<svg height="24" width="'+ uiControls.width+'">' +
+                    '<g transform="translate(240,0)" id="' + id + 'svgMapToggleUp" >' +
+                    '<circle cx="8" cy="9" r="6" stroke="#FF0000" stroke-width="2px" fill="#FF0000" ></circle>' +
+                    '<text x="18" y="14">Up Casts</text></g>' +
+                    '<g transform="translate(240,0)" id="' + id + 'svgMapToggleDown">' +
+                    '<rect x="84" y="4" width="10" height="10" fill="#00FF00" stroke="#00FF00" stroke-width="2"></rect>' +
+                    '<text x="100" y="14">Down Casts</text></g>' +
+                    '</svg>')
+            )
     )
 
     var ctrl_profile_info= $("<div></div>")
@@ -702,7 +832,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
             $("<div></div>")
                 .addClass("span4 profile-info-box")
                 //.css("text-align","right")
-                .html('<h3 style="text-align:center">Location <i class="icon-zoom-in"></i></h3>' +
+                .html('<h3 style="text-align:center">Location </h3>' +
                 '<div>Latitude: <span style="float:right" id="'+id+'profile-info-lat"></span></div>' +
                 '<div>Longitude: <span style="float:right" id="'+id+'profile-info-long"></span></div>')
 
@@ -727,54 +857,17 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
         )
     )
 
-    var ctrl_dd_observations_select = $("<select></select>")
-        .attr("id",id+"dd-observations")
-        .change(function(a){
 
-            self.customization_update();
-            self.transitionChart();
-
-            $(this).parent().css("visibility","hidden");
-
-            $("#" + id + "chart-x-axis-label").css("visibility","visible");
-        });
-
-    $.each(self.observations,function(observation){
-        var obs = self.observations[observation];
-
-        $(ctrl_dd_observations_select)
-            .append(
-            $('<option></option>')
-                .val(observation)
-                .html(obs.label)
-            //.html(obs.name)
-            // obs.name can be used in place of obs.label
-        );
-    });
-
-    // observation pop on for inline control
-    var ctrl_dd_observations = $("<div></div>")
-        .attr("id",id+"ctrl-observations")
-        .css({
-            "z-index":"100",
-            "position":"absolute",
-            "width":"220px",
-            //"height":"300px",
-            "height":"auto",
-            //"width":self.chart.layout.container.width + "px",
-            //"height":self.chart.layout.container.height + "px",
-            "visibility":"hidden"
-        })
-        .append(ctrl_dd_observations_select)
-
-    $("#" + id + "controls-div")
+    $("#" + id + "-uiControls")
         .addClass("controls")
         .append(ctrl_deployment_info)
         .append(ctrl_trackMap)
         .append(ctrl_profile_info)
         .append(ctrl_profile_selection)
 
-    $("body").append(ctrl_dd_observations);
+
+
+    //$("body").append(ctrl_dd_observations);
 
 
     d3.select("#" + id + "svgMapToggleDown")
@@ -816,12 +909,13 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
 
 }
 
-
 EV3_Glider_Profile_Explorer.prototype.slideProfile = function ( a ) {
 
     var self = this, config = self.tool.configuration.custom,
         deployment = config.deployment,
         profile = self.tool.datasets[deployment].profiles[a];
+
+    console.log("profile",profile)
 
     // if(config.profile_id != a){
 
@@ -837,6 +931,7 @@ EV3_Glider_Profile_Explorer.prototype.slideProfile = function ( a ) {
 
     // add selected graphic
     self.trackMap.glProfileSelected.clear();
+
     // todo: convert to sms in trackmap and reference there. no need to do this every time.
     self.trackMap.glProfileSelected.add(new esri.Graphic(
         esri.geometry.geographicToWebMercator(pt),
@@ -871,6 +966,15 @@ EV3_Glider_Profile_Explorer.prototype.getDeployments = function (deploymentId){
 //        id,name,start_time,end_time,casts
 //        246,"RU07 MURI/OOI",2011-12-14T17:11:00Z,2012-01-07T14:47:00Z,1651
 
+
+// http://epe.marine.rutgers.edu/visualization/proxy_glider.php?request=getdeployments
+//  updated web service response
+
+//    id,start_time,end_time,glider_id,name
+//    221,2011-08-10T13:30:00Z,2011-09-09T05:00:00Z,3,"RU16 - EPA run on the NJ coast"
+//    359,2012-08-14T15:19:00Z,2012-08-30T12:59:00Z,4,"RU28 - EPA run on the NJ coast"
+//    367,2012-09-13T15:12:00Z,2012-10-04T13:28:00Z,5,"RU07 - EPA run on the NJ coast"
+
     var self = this, id = self.tool.domID, config = self.tool.configuration.custom;
 
     var url = "http://epe.marine.rutgers.edu/visualization/proxy_glider.php?request=getdeployments";
@@ -898,7 +1002,9 @@ EV3_Glider_Profile_Explorer.prototype.getDeployments = function (deploymentId){
 //            for( var deployment in self.webservice.getdeployments){
 //                deployObj[self.webservice.getdeployments[deployment]] = d[self.webservice.getdeployments[deployment]];
 //            }
-            d.casts = +d.casts;
+
+            // web service update..cast count no longer available.
+//            d.casts = +d.casts;
             d.start_time = self.tool.formats.obsdate.parse(d.start_time);
             d.end_time = self.tool.formats.obsdate.parse(d.end_time);
 
@@ -943,7 +1049,9 @@ EV3_Glider_Profile_Explorer.prototype.displayInfoDeployment = function ( d ){
 
     $("#" + id + "deployment-info-name").html(d.name);
 
-    $("#" + id + "deployment-info-profile-count").html(d.casts);
+    // web service update.. # of casts not available.. will now require finding length of casts array..
+
+    //$("#" + id + "deployment-info-profile-count").html(d.casts);
 
 
     $("#" + id + "deployment-info-start-time").html(self.tool.formats.dateDisplay(d.start_time));
@@ -967,6 +1075,11 @@ EV3_Glider_Profile_Explorer.prototype.getTrack = function ( deploymentId, profil
 //        246,2011-12-14T17:32:14Z,41.343,-70.9957,1,0
 //        246,2011-12-14T17:34:55Z,41.3426,-70.9951,2,1
 
+// web service update
+//    obsdate,latitude,longitude,profile_id,direction
+//    2011-08-10T13:31:46Z,40.351064,-73.8798,1934,d
+//    2011-08-10T13:34:48Z,40.350741,-73.88019,1935,u
+
     var self = this;
     var deployment = deploymentId, profile = profileId;
 
@@ -985,7 +1098,7 @@ EV3_Glider_Profile_Explorer.prototype.getTrack = function ( deploymentId, profil
 
         data.forEach(function(d){
 
-            if( +d.direction == 0 ){
+            if( d.direction == "d" ){
                 d.direction = "Down";
             }
             else{
@@ -1103,6 +1216,12 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
 
     self.trackMap.glTrack.add(self.trackMap.trackGraphic);
 
+    // now zoom to graphic extent
+    //trackExtent = self.trackMap.glTrack.graphics[0].geometry.getExtent();
+    self.trackMap.trackExtent = self.trackMap.trackGraphic.geometry.getExtent();
+
+    self.trackMap.map.setExtent(self.trackMap.trackExtent);
+
     dojo.connect(self.trackMap.glProfilesUp,"onMouseOver",function(evt){
         //map.graphics.clear();  //use the maps graphics layer as the highlight layer
         var cast = evt.graphic.attributes;
@@ -1142,6 +1261,10 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
 
         self.tool.chart.tooltip.style("visibility", "hidden");
 
+    });
+
+    $("#" + id + "-mapZoomExtent").on("click",function(){
+        self.trackMap.map.setExtent(self.trackMap.trackExtent);
     });
 
     // map click events
@@ -1246,7 +1369,7 @@ EV3_Glider_Profile_Explorer.prototype.mapTrack = function ( linePoints ) {
         ));
 
         // find profile array key here. apply to slider
-        $("#"+ self.tool.domID+"profile-slider")
+        $("#"+ self.tool.domID + "profile-slider")
             .slider(
             "value",
             self.getProfileKey(cast.profile_id)
@@ -1307,6 +1430,11 @@ EV3_Glider_Profile_Explorer.prototype.getCast = function (deploymentId, profileI
 //        deployment_id,obsdate,depth,latitude,longitude,sea_water_temperature,sea_water_salinity,sea_water_density,sci_bb3slo_b470_scaled,sci_bb3slo_b532_scaled,sci_bb3slo_b660_scaled,sci_bbfl2s_cdom_scaled,sci_bbfl2s_chlor_scaled,profile_id,direction
 //        246,2011-12-14T18:22:35Z,5,41.3379,-70.992,10.7205,32.0093,1024.52,0.0023013,0.0022987,0.0011,3.57494,1.91421,3,0
 //        246,2011-12-14T18:22:40Z,6,41.3379,-70.992,10.7171,32.0103,1024.53,0.00214054,0.00200541,0.00103514,3.07183,1.88258,3,0
+
+// web service update
+// data_id,profile_id,obsdate,latitude,longitude,depth,tempwat,condwat,pracsal,density,optparw,flubsct,cdomflo,chlaflo,doconcs
+// 43662,1934,2011-08-10T13:30:48Z,40.3512,-73.8797,3,24.0778,4.4734,29.4986,1019.4749,,,,,
+// 43663,1934,2011-08-10T13:30:54Z,40.3512,-73.8797,4,24.0975,4.4956,29.6487,1019.5849,,,,,
 
     var self = this, id = self.tool.domID;
 
@@ -1440,7 +1568,7 @@ EV3_Glider_Profile_Explorer.prototype.customization_update = function () {
 
         //"deployment":$("#" + id + "ctrl-deployment").val(),
         //"cast":"1",
-        "observation": $("#"+ id + "dd-observations").val()
+        "observation": $("#"+ id + "-dd-observations").val()
     };
 
     $.extend(self.tool.configuration.custom,config_updates);
