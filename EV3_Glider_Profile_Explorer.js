@@ -5,7 +5,7 @@
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
 // Revised 10/23/12
-// Version 0.1.8
+// Version 0.1.8.1
 
 var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
@@ -14,122 +14,68 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
     this.evTool = new EVTool();
 
     /***************************************/
-    // SETTINGS - Parameters
+    // SETTINGS - Observations
     /***************************************/
 
-    // obsdate,latitude,longitude,depth,tempwat,condwat,pracsal,density,optparw,flubsct,cdomflo,chlaflo,doconcs
-
-        // obsdate,latitude,longitude,depth,
-        // tempwat, sea_water_temperature
-        // condwat,
-        // pracsal, sea_water_salinity
-        // density, sea_water_density
-        // optparw,
-        // flubsct,
-        // cdomflo, sci_bbfl2s_cdom_scaled
-        // chlaflo, sci_bbfl2s_chlor_scaled
-        // doconcs
-
-// original
-//    this.observations = {
-//
-//        "sea_water_temperature":{
-//            "name":"Seawater Temperature",
-//            "label":"Seawater Temperature (C)",
-//            "column":"sea_water_temperature (C)",
-//            "units":"&deg;C",
-//            "units2":"Degrees Celcius"
-//        },
-//        "sea_water_salinity":{
-//            "name":"Seawater Salinity",
-//            "label":"Seawater Salinity",
-//            "column":"sea_water_salinity (psu)",
-//            "units":"",
-//            "units2":""
-//        },
-//        "sea_water_density":{
-//            "name":"Seawater Density",
-//            "label":"Seawater Density (kg m^-3)",
-//            "column":"sea_water_density",
-//            "units":"(kg m^-3)",
-//            "units2":"m^-3"
-//        },
-//        "sci_bb3slo_b470_scaled":{
-//            "name":"Volume Scattering",
-//            "label":"Volume Scattering",
-//            "column":"sci_bb3slo_b470_scaled",
-//            "units":"",
-//            "units2":""
-//        },
-//        "sci_bb3slo_b532_scaled":{
-//            "name":"Volume Scattering",
-//            "label":"Volume Scattering",
-//            "column":"sci_bb3slo_b532_scaled",
-//            "units":"",
-//            "units2":""
-//        },
-//        "sci_bb3slo_b660_scaled":{
-//            "name":"Volume Scattering",
-//            "label":"Volume Scattering",
-//            "column":"sci_bb3slo_b660_scaled",
-//            "units":"",
-//            "units2":""
-//        },
-//        "sci_bbfl2s_cdom_scaled":{
-//            "name":"CDOM",
-//            "label":"CDOM (µg L-1)",
-//            "column":"sci_bbfl2s_cdom_scaled",
-//            "units":"(ppb)",
-//            "units2":"ppb"
-//        },
-//        "sci_bbfl2s_chlor_scaled":{
-//            "name":"Chlorophyll",
-//            "label":"Chlorophyll (µg L-1)",
-//            "column":"sci_bbfl2s_chlor_scaled",
-//            "units":"(µg L-1)",
-//            "units2":"µg L-1"
-//        }
-//    };
-
-    this.observations = {
+   this.observations = {
 
         "tempwat"   : {
             "name"   : "Seawater Temperature",
             "label"  : "Seawater Temperature (C)",
-            "column" : "sea_water_temperature (C)",
             "units"  : "&deg;C",
             "units2" : "Degrees Celcius"
         },
         "pracsal"      : {
             "name"   : "Seawater Salinity",
             "label"  : "Seawater Salinity",
-            "column" : "sea_water_salinity (psu)",
             "units"  : "",
             "units2" : ""
         },
         "density"       : {
             "name"   : "Seawater Density",
             "label"  : "Seawater Density (kg m^-3)",
-            "column" : "sea_water_density",
             "units"  : "(kg m^-3)",
             "units2" : "m^-3"
         },
         "cdomflo"  : {
             "name"   : "CDOM",
             "label"  : "CDOM (µg L-1)",
-            "column" : "sci_bbfl2s_cdom_scaled",
             "units"  : "(ppb)",
             "units2" : "ppb"
         },
         "chlaflo" : {
             "name"   : "Chlorophyll",
             "label"  : "Chlorophyll (µg L-1)",
-            "column" : "sci_bbfl2s_chlor_scaled",
             "units"  : "(µg L-1)",
             "units2" : "µg L-1"
+        },
+        "optparw" :{
+            "name"   : "PAR",
+            "label"  : "Photosynthetically Active Radiation (PAR)",
+            "units"  : "",
+            "units2" : ""
+        },
+        "flubsct" :{
+            "name"   : "Optical Backscatter",
+            "label"  : "Optical Backscatter (red wavelengths)",
+            "units"  : "",
+            "units2" : ""
         }
 
     };
+
+    // obsdate,latitude,longitude,depth,
+    // tempwat, sea_water_temperature
+    // pracsal, sea_water_salinity
+    // density, sea_water_density
+    // cdomflo, sci_bbfl2s_cdom_scaled
+    // chlaflo, sci_bbfl2s_chlor_scaled
+
+
+    // condwat, conductivity
+    // optparw, Photosynthetically Active Radiation (PAR)
+    // flubsct, Optical Backscatter
+    // doconcs  Oxygen Concentration
 
     // stations object is populated from the configuration list and overridden with the user configuration
     this.stations = {};
@@ -140,7 +86,7 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
         "title":"EV TOOL 3",
         "subtitle":"Glider Profile Explorer",
         "deployment":"221",
-        "profile_id":"101",
+        "profile_id":"2",
         "observation":"tempwat",
         "observation_list":"" //?
 
@@ -223,7 +169,7 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
     // request esri arcgis jsapi, callback will requires esri.map,  continue loading tool
 
-    $.getScript("http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.0compact", function(data, textStatus, jqxhr) {
+    $.getScript("http://serverapi.arcgisonline.com/jsapi/arcgis/?v=3.2compact", function(data, textStatus, jqxhr) {
         // CONSOLE-OFF console.log(data); //data returned
         // CONSOLE-OFF console.log(textStatus); //success
         // CONSOLE-OFF console.log(jqxhr.status); //200
@@ -267,10 +213,10 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                        {
-                            "color": [200,0,0,255],
-                            "width": 2
-                        }
+                    {
+                        "color": [200,0,0,255],
+                        "width": 2
+                    }
             }),
             smsUp : new esri.symbol.SimpleMarkerSymbol({
                 "type": "esriSMS",
@@ -281,10 +227,10 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                        {
-                            "color": [100,100,100,255],
-                            "width": .5
-                        }
+                    {
+                        "color": [100,100,100,255],
+                        "width": .5
+                    }
             }),
 
             smsDown : new esri.symbol.SimpleMarkerSymbol({
@@ -296,10 +242,10 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
                 "xoffset": 0,
                 "yoffset": 0,
                 "outline":
-                        {
-                            "color": [100,100,100,255],
-                            "width": .5
-                        }
+                    {
+                        "color": [100,100,100,255],
+                        "width": .5
+                    }
             })
         };
 
@@ -346,7 +292,7 @@ EV3_Glider_Profile_Explorer.prototype.mapInitialize = function ( ) {
             var mp = esri.geometry.webMercatorToGeographic(evt.mapPoint);
 
             //display mouse coordinates
-            dojo.byId(self.tool.domID + "-track-map-info").innerHTML = d3.round(mp.x,4) + ", " + d3.round(mp.y,4);
+            dojo.byId(self.tool.domID + "-track-map-info").innerHTML = self.evTool.formatLat(mp.y) + ", " + self.evTool.formatLong(mp.x);
 
         }
     }
@@ -725,10 +671,10 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
             .append(
                 $('<button class="btn btn-mini" type="button" style="float:left;margin-top:3px;" id="' + id + '-mapZoomExtent"><i class="icon-zoom-in"></i> Zoom To Track Extent</button>' +
                     '<svg height="24" width="'+ uiControls.width+'">' +
-                    '<g transform="translate(240,0)" id="' + id + 'svgMapToggleUp" >' +
+                    '<g id="' + id + 'svgMapToggleUp" >' +
                     '<circle cx="8" cy="9" r="6" stroke="#FF0000" stroke-width="2px" fill="#FF0000" ></circle>' +
                     '<text x="18" y="14">Up Casts</text></g>' +
-                    '<g transform="translate(240,0)" id="' + id + 'svgMapToggleDown">' +
+                    '<g id="' + id + 'svgMapToggleDown">' +
                     '<rect x="84" y="4" width="10" height="10" fill="#00FF00" stroke="#00FF00" stroke-width="2"></rect>' +
                     '<text x="100" y="14">Down Casts</text></g>' +
                     '</svg>')
@@ -759,8 +705,11 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                     .addClass("span4 profile-info-box")
                     //.css("text-align","right")
                     .html('<h3 style="text-align:center">Location </h3>' +
-                    '<div>Latitude: <span style="float:right" id="' + id + '-profile-info-lat"></span></div>' +
-                    '<div>Longitude: <span style="float:right" id="' + id + '-profile-info-long"></span></div>')
+                    '<div style="text-align:center" id="' + id + '-profile-info-lat"></div>' +
+                    '<div style="text-align:center" id="' + id + '-profile-info-long"></div>')
+
+                    //'<div>Latitude: <span style="float:right" id="' + id + '-profile-info-lat"></span></div>' +
+                    //'<div>Longitude: <span style="float:right" id="' + id + '-profile-info-long"></span></div>')
 
         )
             .append(
@@ -930,10 +879,10 @@ EV3_Glider_Profile_Explorer.prototype.displayInfoCast = function ( profileIndex,
 
     //$("#" + id + "ctrl_profile_info_date").html();
     $("#" + id + "-profile-info-lat")
-        .html(cast.latitude);
+        .html(self.evTool.formatLat(cast.latitude));
 
     $("#" + id + "-profile-info-long")
-        .html(cast.longitude);
+        .html(self.evTool.formatLong(cast.longitude));
 
     $("#" + id + "-profile-info-direction")
         .attr("src", "http://epe.marine.rutgers.edu/visualization/img/gliderDirection" + cast.direction + "32.png");
