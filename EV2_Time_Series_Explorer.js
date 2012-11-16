@@ -447,14 +447,15 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .attr("x", "115")
         .attr("y", "2")
 
-    this.d_legend_station1.append("svg:image")
-        .attr("id", id + "-legend-station1-edit")
-        .attr("xlink:href","../../img/icon-settings.png")
-        .attr("width",24)
-        .attr("height",24)
-        .attr("x", "225")
-        .attr("y", "-12")
+//    this.d_legend_station1.append("svg:image")
+//        .attr("id", id + "-legend-station1-edit")
+//        .attr("xlink:href","../../img/icon-settings.png")
+//        .attr("width",24)
+//        .attr("height",24)
+//        .attr("x", "225")
+//        .attr("y", "-12")
 
+    /*
     $("#" + id + "-legend-station1-edit")
         .popover(
             {
@@ -477,7 +478,7 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
              evt.stopPropagation();
 
         })
-
+    */
 
     this.d_legend_station2 = this.d_legend.append("g")
         .attr("class", "legend")
@@ -541,41 +542,41 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .attr("id", "-focus-g")
         .attr("transform", "translate(" + self.chart.layout.focus.margin.left + "," + self.chart.layout.focus.margin.top + ")");
 
-    this.g_dateStart = this.svg.append("g")
-        .attr("id", "-g-ctrl-dateStart")
-        .attr("transform", "translate(" + 0 + "," + self.chart.layout.context.margin.top + ")");
+//    this.g_dateStart = this.svg.append("g")
+//        .attr("id", "-g-ctrl-dateStart")
+//        .attr("transform", "translate(" + 0 + "," + self.chart.layout.context.margin.top + ")");
 
-    this.g_dateStart
-        .append("svg:text")
-        .text("Start Date")
-        .attr("font-weight","bold")
-        .attr("x",2)
-        .attr("y",2);
+//    this.g_dateStart
+//        .append("svg:text")
+//        .text("Start Date")
+//        .attr("font-weight","bold")
+//        .attr("x",2)
+//        .attr("y",2);
+//
+//    this.g_dateStart
+//        .append("svg:text")
+//        .text(self.tool.configuration.custom.date_start)
+//        .attr("font-weight","bold")
+//        .attr("x",2)
+//        .attr("y",20);
 
-    this.g_dateStart
-        .append("svg:text")
-        .text(self.tool.configuration.custom.date_start)
-        .attr("font-weight","bold")
-        .attr("x",2)
-        .attr("y",20);
-
-    this.g_dateEnd = this.svg.append("g")
-        .attr("id", "-g-ctrl-dateEnd")
-        .attr("transform", "translate(" + (self.chart.layout.context.margin.left + self.chart.layout.context.width) + "," + self.chart.layout.context.margin.top + ")");
-
-    this.g_dateEnd
-        .append("svg:text")
-        .text("End Date")
-        .attr("font-weight","bold")
-        .attr("x",2)
-        .attr("y",2);
-
-    this.g_dateEnd
-        .append("svg:text")
-        .text( self.tool.configuration.custom.date_end)
-        .attr("font-weight","bold")
-        .attr("x",2)
-        .attr("y",20);
+//    this.g_dateEnd = this.svg.append("g")
+//        .attr("id", "-g-ctrl-dateEnd")
+//        .attr("transform", "translate(" + (self.chart.layout.context.margin.left + self.chart.layout.context.width) + "," + self.chart.layout.context.margin.top + ")");
+//
+//    this.g_dateEnd
+//        .append("svg:text")
+//        .text("End Date")
+//        .attr("font-weight","bold")
+//        .attr("x",2)
+//        .attr("y",2);
+//
+//    this.g_dateEnd
+//        .append("svg:text")
+//        .text( self.tool.configuration.custom.date_end)
+//        .attr("font-weight","bold")
+//        .attr("x",2)
+//        .attr("y",20);
 
     tool_container.append("div")
         .attr("id", "controls-div")
@@ -664,14 +665,14 @@ EV2_Time_Series_Explorer.prototype.draw = function () {
         .css("margin-right", "20px")
         .attr("data-toggle", "modal")
         .attr("href", "#modal-dates")
-        .html("Change Dates");
+        .html("Change Date Range");
 
     var ctrl_datasets_btn = $("<a></a>").attr({
         id: "btn_datasets"
     }).addClass("btn btn-primary")
         .attr("data-toggle", "modal")
         .attr("href", "#modal-params")
-        .html("Change Parameters");
+        .html("Change Datasets");
 
     var controls_div = $("<div></div>").attr({
         id: "control_buttons",

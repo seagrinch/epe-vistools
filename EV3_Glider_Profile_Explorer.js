@@ -31,24 +31,27 @@ var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
             "units"  : "",
             "units2" : ""
         },
-        "density"       : {
-            "name"   : "Seawater Density",
-            "label"  : "Seawater Density (kg m^-3)",
-            "units"  : "(kg m^-3)",
-            "units2" : "m^-3"
-        },
-        "cdomflo"  : {
-            "name"   : "CDOM",
-            "label"  : "CDOM (µg L-1)",
-            "units"  : "(ppb)",
-            "units2" : "ppb"
-        },
-        "chlaflo" : {
-            "name"   : "Chlorophyll",
-            "label"  : "Chlorophyll (µg L-1)",
-            "units"  : "(µg L-1)",
-            "units2" : "µg L-1"
-        },
+           "density"       : {
+   "name"   : "Seawater Density",
+   "label"  : "Seawater Density (kg/m^3)",
+   "column" : "sea_water_density",
+   "units"  : "(kg/m^3)",
+   "units2" : "kg/m^3"
+},
+       "cdomflo"  : {
+           "name"   : "CDOM",
+           "label"  : "CDOM (ppb)",
+           "column" : "sci_bbfl2s_cdom_scaled",
+           "units"  : "(ppb)",
+           "units2" : "ppb"
+       },
+       "chlaflo" : {
+           "name"   : "Chlorophyll",
+           "label"  : "Chlorophyll (µg/L)",
+           "column" : "sci_bbfl2s_chlor_scaled",
+           "units"  : "(µg/L)",
+           "units2" : "µg/L"
+       },
         "optparw" :{
             "name"   : "PAR",
             "label"  : "Photosynthetically Active Radiation (PAR)",
@@ -323,18 +326,18 @@ EV3_Glider_Profile_Explorer.prototype.uiToolInterface = function() {
             "border-radius": "5px"
         })
         .addClass("container-fluid")
-        .append(
-            $("<div></div>")
-                .addClass("row-fluid")
-                .append(
-                $("<div></div>")
-                    .addClass("span12")
-                    .attr("id", id + "-title")
-                    .append(
-                    $("<h2></h2>").html("Glider Profile Explorer").css("border-bottom","2px solid #CCCCCC")
-                )
-            )
-        )
+//        .append(
+//            $("<div></div>")
+//                .addClass("row-fluid")
+//                .append(
+//                $("<div></div>")
+//                    .addClass("span12")
+//                    .attr("id", id + "-title")
+//                    .append(
+//                    $("<h2></h2>").html("Glider Profile Explorer").css("border-bottom","2px solid #CCCCCC")
+//                )
+//            )
+//        )
         .append(
             $("<div></div>")
                 .css({
@@ -427,7 +430,7 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
         .attr("id", id + "svg-path")
         .attr("class", "svg-path")
         .style("stroke-width",2)
-        .style("stroke", "#B94A48")
+        .style("stroke", "#3f4bce")
         .style("fill", "none")
 
     self.g_path_symbols = self.g_path_container
@@ -481,6 +484,8 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
         );
     });
 
+    // set the drop down to the custom instance parameter
+    ctrl_dd_observations_select.val(self.tool.configuration.custom.observation);
 
     $("#" + id + "-chart_container")
         .append(
@@ -497,7 +502,8 @@ EV3_Glider_Profile_Explorer.prototype.uiChart = function () {
         .attr("text-anchor", "middle")
         .attr("x", -(container.layout.height / 2))
         .attr("y", container.layout.margin.left / 2)
-        .attr("class", "chart-label-y")
+        .attr("font-size","16")
+        .attr("font-weight","bold")
         .attr("fill","#000000")
         .attr("transform", "rotate(270) translate(0,"+ chart.layout.margin.left/3 +")")
         .text("Depth (m)")
@@ -518,11 +524,11 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
             .append(
             $('<h3 class="page-header"></h3>')
                 .css({"padding-bottom":"0","margin":"0"})
-                .html("Glider Deployment:  ")
+                .html("Glider Deployment Information:  ")
                 .append(
                 $("<small></small>")
                     .addClass("attribute")
-                    .attr("id",id+"deployment-info-name")
+                    .attr("id",id+"-deployment-info-name")
             )
         )
             .append(
@@ -531,7 +537,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                 .append(
                 $("<span></span>")
                     .addClass("attribute")
-                    .attr("id",id+"deployment-info-start-time")
+                    .attr("id",id+"-deployment-info-start-time")
             )
 
         )
@@ -541,7 +547,7 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                 .append(
                 $("<span></span>")
                     .addClass("attribute")
-                    .attr("id",id+"deployment-info-end-time")
+                    .attr("id",id+"-deployment-info-end-time")
             )
 
         )
@@ -607,7 +613,8 @@ EV3_Glider_Profile_Explorer.prototype.uiControls = function () {
                         },
                         change: function(event, ui) {
 
-                            self.slideProfile(+ui.value - 1 );
+                            self.slideProfile(+ui.value );
+                            //self.slideProfile(+ui.value - 1 );
 
                         }
                     })
@@ -898,12 +905,12 @@ EV3_Glider_Profile_Explorer.prototype.displayInfoDeployment = function ( d ){
     // CONSOLE-OFF console.log("displayInfoDeployment",d);
     console.log("diplayInfo:", d)
 
-    $("#" + id + "deployment-info-name").html(d.name);
+    $("#" + id + "-deployment-info-name").html(d.name);
 
     //$("#" + id + "deployment-info-profile-count").html(d.casts);
 
-    $("#" + id + "deployment-info-start-time").html(self.tool.formats.dateDisplay(d.start_time));
-    $("#" + id + "deployment-info-end-time").html(self.tool.formats.dateDisplay(d.end_time));
+    $("#" + id + "-deployment-info-start-time").html(self.tool.formats.dateDisplay(d.start_time));
+    $("#" + id + "-deployment-info-end-time").html(self.tool.formats.dateDisplay(d.end_time));
 
 };
 
@@ -1313,18 +1320,18 @@ EV3_Glider_Profile_Explorer.prototype.transitionChart = function ( ){
         .enter().append("circle")
         .attr("r", 3.5)
         .style("fill", "#FFFFFF")
-        .style("stroke", "#B94A48")
+        .style("stroke", "#3f4bce")
         .style("stroke-width", 1);
 
     enter_symbol1.transition().duration(1000)
         .attr("cx", function (d) {return lineX(d[colX]);})
         .attr("cy", function (d) {return lineY(d[colY]);})
-        .style("stroke", "#B94A48");
+        .style("stroke", "#3f4bce");
 
     enter_symbol1.exit().remove();
 
     self.g_path_symbols.selectAll("circle")
-        .on("mouseover", function(d){self.chart_mouseover(d,colX,colY,units,"important")})
+        .on("mouseover", function(d){self.chartMouseover(d,colX,colY,units,"important")})
         .on("mousemove", function(d){self.mousemove()})
         .on("mouseout", function(d){self.mouseout()});
 
@@ -1367,17 +1374,18 @@ EV3_Glider_Profile_Explorer.prototype.customization_update = function () {
 
 };
 
-EV3_Glider_Profile_Explorer.prototype.chart_mouseover = function (d,colX,colY,units) {
+EV3_Glider_Profile_Explorer.prototype.chartMouseover = function (d,colX,colY,units) {
     var self = this,
-        date_format = d3.time.format("%m/%d/%Y-%H:%M"),
-        fmt = self.tool.formats.tooltip_num;
+        fmt = self.tool.formats.tooltip_num,
+        ttdate =  self.tool.formats.tooltip_date;
 
-    return self.tool.chart.tooltip.style("visibility", "visible")
-        .attr("class","label label-info" )
+    return self.tool.chart.tooltip
+        .style("visibility", "visible")
+        .attr("class", "label label-info" )
         .html(
-        "Date: " + self.tool.formats.tooltip_date(d.obsdate) + "<br />" +
+            "Date: " + ttdate(d.obsdate) + "<br />" +
             "Depth: " + d[colY] + " meters <br />" +
-            self.observations[colX].name + ": " + fmt(d[colX]) + units + "</b>");
+            self.observations[colX].name + ": " + self.evTool.formatGliderObs(d[colX],colX) + " " + units + "</b>");
 
 }
 
@@ -1385,9 +1393,6 @@ EV3_Glider_Profile_Explorer.prototype.mousemove = function () {
     return this.tool.chart.tooltip
         .style("top", (d3.event.pageY - 10) + "px")
         .style("left", (d3.event.pageX + 10) + "px");
-
-    //todo: this is not working in older versions of firefox. might need to convert to d3.mouse
-
 };
 
 EV3_Glider_Profile_Explorer.prototype.mouseout = function () {

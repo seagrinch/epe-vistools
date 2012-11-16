@@ -4,8 +4,8 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 9/24/12
-// Version 0.1.8
+// Revised 11/11/12
+// Version 0.1.9
 
 var EV5_NDBC_Data_Comparator = function (domID, customConfiguration) {
 

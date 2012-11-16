@@ -75,7 +75,6 @@ var EV0_NDBC_Time_Series = function( domId, customToolConfiguration ){
         }
     };
 
-
     // an empty object where datasets should be placed
     this.dataset={};
 

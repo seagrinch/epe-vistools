@@ -985,6 +985,9 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
 
     var date_format = d3.time.format("%m/%d/%Y-%H:%M");
 
+
+    //todo: dateformat change.. logged in JIRA: issue 96
+
     self.tool.chart.tooltips = svg_container
         .append("svg:g")
         .attr("id",  id + "-svg_circles_" + ds_name )
