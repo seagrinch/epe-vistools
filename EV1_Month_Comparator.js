@@ -494,7 +494,7 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                 tmpYear = $("#" + id + "-ctrl-dropdown-year").val(),
                 tmpColor = $("#" + id + "-ctrl-colorpicker").val();
 
-            self.tool.configuration.custom.datasets[tmpYear + "_" + tmpMonth] = {isLoaded:false};
+            //self.tool.configuration.custom.datasets[tmpYear + "_" + tmpMonth] = {isLoaded:false};
 
             self.requestData(tmpMonth, tmpYear, tmpColor);
 
@@ -1376,7 +1376,18 @@ EV1_Month_Comparator.prototype.requestData = function (month, year, color) {
 
     var ds_name = year + '_' + month;
 
-    if ( typeof(config.datasets[ds_name]) !== "undefined") {
+    var loadData = false;
+
+    if ( typeof(config.datasets[ds_name]) === "undefined") {
+        loadData = true;
+        config.datasets[ds_name] = { isLoaded : false };
+    }
+    else
+    {
+        loadData = config.datasets[ds_name].isLoaded ? false : true;
+    }
+
+    if( loadData ){
 
         var station = $("#" +  id + "-ctrl-dropdown-station").val(),
             observation = $("#" +  id + "-ctrl-dropdown-observation").val(),
@@ -1420,6 +1431,7 @@ EV1_Month_Comparator.prototype.requestData = function (month, year, color) {
 
         });
     }
+
     else {
         alert("This month is already in your list. Please choose another Month and/or year.");
 
