@@ -4,8 +4,8 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 11/26/12
-// Version 0.2.2
+// Revised 11/27/12
+// Version 0.2.3
 
 var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
@@ -1262,7 +1262,7 @@ EV1_Month_Comparator.prototype.redrawY = function () {
 
         if ( ds.isDrawReady && ds.isVisible) { //&& dset.isVisible
 
-            console.log("dataset",ds_name, "is visible", ds.isVisible);
+            console.log("dataset", ds_name, "is visible", ds.isVisible);
 
             var line_y = self.tool.chart.timeseries.y,
                 colY = ds.colY;
@@ -1491,7 +1491,7 @@ EV1_Month_Comparator.prototype.updateStationAndObservation = function () {
         datasets[ds_name].observation = observation;
 
         // remove all svg and legend items for this dataset
-        d3.select("#" + id + "-svg-g-" + ds_name).remove();
+        $("#" + id + "-svg-g-" + ds_name).remove();
 
         // set the title and the y-axis label
         d3.select("#" + id + "-chart-label-title").text(self.observations[observation].label + " at " + self.stations[station].label);
@@ -1523,17 +1523,15 @@ EV1_Month_Comparator.prototype.removeDataset = function ( datasetName ){
         id = self.tool.domID,
         datasets = self.tool.configuration.custom.datasets;
 
-
-    // remove from legend
-    $("#" + id + "-stats_legend_" + datasetName ).remove();
-
     // remove all elements from dom.. used array for simple additions
     [
+        "-stats_legend_",
         "-svg_",
         "-svgmean_",
         "-svgmean-blank-",
         "-svg_circles_",
-        "-svg_legend_toggle_"
+        "-svg_legend_toggle_",
+        "-svg-g-"
     ].forEach( function( element ){
 
         $( "#" + id + element + datasetName ).remove();
