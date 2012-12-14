@@ -1,0 +1,431 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>EV 3.03 - D3 visualization of Hovmo&ouml;ller diagrams</title>
+
+    <link rel="stylesheet" href="http://epe.marine.rutgers.edu/visualization/css/bootstrap.min.css">
+
+    <style type="text/css">
+
+        body{
+            margin:10px;
+        }
+
+        .axis path,
+        .axis line {
+            fill: none;
+            stroke: black;
+            stroke-width: 1px;
+            shape-rendering: crispEdges;
+        }
+        rect{
+            /*stroke:none;*/
+        }
+        #hovmoller{
+            height:550px;
+        }
+
+
+        /*.colorBarGradient{*/
+            /*fill: url(#colorBarGradient);*/
+            /*stroke: #6699CC,*/
+            /*stroke-width":"2;*/
+        /*}*/
+        /*.colorBarGradientA{*/
+            /*fill: url(#colorBarGradientA);*/
+            /*stroke: #6699CC,*/
+            /*stroke-width":"2;*/
+        /*}*/
+
+    </style>
+</head>
+<body>
+
+<div class="container-fluid">
+<div class="row-fluid">
+    <h2 class="page-header">EV Prototypes <small> 3.03: D3 visualization of Hovm&ouml;ller diagrams</small></h2>
+</div>
+    <div class="row-fluid">
+        <div class="span8 well">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                        <div id="hovmoller"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="controls" class="span4 well">
+            <div class="container-fluid">
+                <div class="row-fluid">
+                    <div class="span12">
+                       Select Dataset: <select id="sel_datasets"></select> <br>
+                       Select Parameter: <select id="sel_variableZdefault"></select><br />
+                       <button class="btn btn-primary" id="btnChartDraw">Draw Chart</button><br />
+
+                       Transition To: <select id="sel_variableZtransition"></select><br />
+                        <button class="btn btn-primary" id="btnChartTransition">Draw Chart</button><br />
+
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div class="row-fluid">
+        <div class="span12">
+
+
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+<script type="text/javascript" src="http://epe.marine.rutgers.edu/visualization/js/bootstrap.js"></script>
+<script type="text/javascript" src="http://epe.marine.rutgers.edu/visualization/js/d3.v2.min.js"></script>
+<script type="text/javascript">
+
+    var downloads = [];
+
+    var p = $(function() {
+
+        var layout = {
+            hovmoller: {
+                width: $("#hovmoller").width(),
+                height:  $("#hovmoller").height(),
+                margin:{t:10,r:10,b:30,l:25}
+            },
+            colorBar:{
+                widthAxis:50,
+                widthColors:20,
+                width:70,
+                marginOffsetX:10,
+                marginOffsetY:10
+            }
+        },
+        formats = {
+            //startTime: d3.time.format("%Y-%m-%dT%H:%M:%SZ"),
+            //2012-09-13 16:26:41
+            timeDownload: d3.time.format("%H:%M:%S"),
+            obsdate: d3.time.format("%Y-%m-%dT%H:%M:%SZ")
+        },
+
+        downloadCount = 0;
+
+        var csvFileName = "";
+
+        var csvFileNames = {
+            //"Deployment200k" : "GliderData_220k.csv",
+
+            "Deployment 221 (1k)"   :   "GliderData_221_1000.csv",
+            "Deployment 221 (10k)"  :   "GliderData_221_10000.csv",
+            "Deployment 221 (25k)"  :   "GliderData_221_25000.csv",
+            "Deployment 221 (50k)"  :   "GliderData_221_50000.csv",
+            "Deployment 221 (75k)"  :   "GliderData_221_75000.csv",
+            "Deployment 221 (100k)" :   "GliderData_221_100000.csv",
+            "Deployment 221 (150k)" :   "GliderData_221_150000.csv",
+            "Deployment 221 (Full)" :   "GliderData_221.csv",
+            "Deployment 359 (Full)" :   "GliderData_359.csv",
+            "Deployment 367 (Full)" :   "GliderData_367.csv",
+            "Deployment 369 (Full)" :   "GliderData_369.csv"
+        };
+
+        var variables = {
+            x:{ name:"Observation Date",field:"obsdate"},
+            y:{ name:"Depth",field:"preswat"},
+            z:[
+                { name:"Salinity", field:"pracsal"},
+                { name:"Temperature", field: "tempwat"},
+                { name:"Density", field:"density"}
+            ]
+        };
+
+        var svg;
+
+        //z tempwat, condwat, pracsal, density, optparw, flubsct, cdomflo, chlaflo, doconcs
+
+        function dataDownload(){
+
+            csvFileName = $("#sel_datasets").val();
+
+            downloadCount++;
+
+            var d = downloads[downloadCount-1] = {};
+
+            console.log("entered function dataDownload");
+
+            d3.csv("../assets/" + csvFileName, function(data){
+
+                console.log("csv downloaded.. init callback");
+
+                // parse data
+                data.forEach( function ( d ) {
+
+                    d[variables.x.field] = formats.obsdate.parse(d[variables.x.field]);
+
+                    d[variables.y.field] = +d[variables.y.field];
+
+                    d[variables.z[0].field] = + d[variables.z[0].field];
+                    d[variables.z[1].field] = + d[variables.z[1].field];
+                    d[variables.z[2].field] = + d[variables.z[2].field];
+
+                });
+                d.data = data;
+
+                // chart data
+                dataChart();
+            });
+
+        }
+
+
+        function dataChart(){
+
+            var d = downloads[downloadCount-1],
+                dataset = d.data,
+                hm = layout.hovmoller,
+                cb = layout.colorBar,
+                field_z = $("#sel_variableZdefault").val();
+
+            var colorsOrig = ['darkblue', 'mediumblue', 'blue', 'aqua', 'lightgreen', 'yellow', 'orange', 'orangered', 'red', 'darkred'],
+                    colors = ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00", "#FFA500","#FF4500","#FF0000","#8B0000"],
+                colorScaler = d3.scale.linear().range(colors);
+
+            var scale = d3.scale.linear()
+                    .domain([0, colors.length-1])
+                    .range(d3.extent(d.data, function(d) {return d[field_z];}));
+
+            colorScaler.domain(d3.range(colors.length).map(scale));
+
+            var w = hm.widthChart = hm.width - cb.width - hm.margin.l - hm.margin.r,
+                h = hm.heightChart = hm.height - hm.margin.t - hm.margin.b;
+
+            var xScale = d3.time.scale()
+                    .domain(d3.extent(dataset, function(d) { return d[variables.x.field]; }))
+                    .range([hm.margin.l, w]);
+
+            var yScale = d3.scale.linear()
+                    .domain(d3.extent(dataset, function(d) { return d[variables.y.field]; }))
+                    .range([hm.margin.t, h]);
+
+            var xAxis = d3.svg.axis()
+                    .scale(xScale)
+                    .orient("bottom")
+                    .ticks(5);
+
+            var yAxis = d3.svg.axis()
+                    .scale(yScale)
+                    .orient("left")
+                    .ticks(5);
+
+            svg = d3.select("#hovmoller")
+                    .append("svg")
+                    .attr("id","hovmollerSvg")
+                    .attr("width", hm.width)
+                    .attr("height", hm.height);
+
+            svg.append("svg:g")
+                .append("svg:clipPath")
+                .attr("id", "clipper")
+                .append("svg:rect")
+                .attr({
+                    width : hm.widthChart - hm.margin.l + 1,
+                    height: hm.heightChart - hm.margin.t,
+                    x:hm.margin.l,
+                    y:hm.margin.t
+                });
+
+            svg.append("svg:g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(0," + hm.heightChart + ")")
+                    .call(xAxis);
+
+            //Create Y axis
+            svg.append("svg:g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(" + hm.margin.l + ",0)")
+                    .call(yAxis);
+
+            svg.append("svg:g")
+                //.attr("id", "zValues")
+                .attr("width", hm.widthChart)
+                .attr("height", hm.heightChart)
+                .attr("class", "zValues")
+                .attr("clip-path","url(#clipper)")
+                    .selectAll("rect")
+                .data(dataset)
+                    .enter()
+                    .append("rect")
+                        .attr("x", function (d) {
+                            return xScale(d[variables.x.field]);
+                        })
+                        .attr("y", function (d) {
+                            return yScale(d[variables.y.field])-9;
+                        })
+                        .attr("width", 3)
+                        .attr("height", 18)
+
+                        .attr("fill", function (d) {
+                            return colorScaler(d[field_z])
+                        });
+
+            svg.append("svg:g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(0," + hm.heightChart + ")")
+                    .call(xAxis);
+
+            //Create Y axis
+            svg.append("svg:g")
+                    .attr("class", "axis")
+                    .attr("transform", "translate(" + hm.margin.l + ",0)")
+                    .call(yAxis);
+
+            // Color Bar
+            colorBar(dataset,field_z,colors);
+
+        }
+
+        function colorBar( dataset, field_z, colorAry){
+
+            // how to deal with scale labels of different size 29.3 salinity vs. 3 degrees temp
+            // height, width
+            var l = layout, cb = l.colorBar, hm = l.hovmoller;
+
+            var
+                widthColors = cb.widthColors,
+                widthAxis = cb.widthAxis,
+                offsetX = cb.marginOffsetX;
+
+            var h = hm.heightChart;
+
+            var colorSpacing = Math.floor((100/(colorAry.length+1)));
+
+            var svgColorBar = d3.select("#hovmollerSvg")
+                    .append("svg:g")
+                    .attr({
+                        "width"     : widthAxis,
+                        "height"    : h,
+                        "id"        : "hovmollerSvgColorBar_" + Math.random(1,100),
+                        "transform" : "translate(" + (hm.widthChart + offsetX) + ",0)"
+                    });
+
+            var colorBarDefs = svgColorBar.append("defs")
+                    .append("linearGradient")
+                    .attr({
+                        id : "colorBarGradient",
+                        x1 : "0%",
+                        y1 : "100%",
+                        x2 : "0%",
+                        y2 : "0%"
+                    })
+                    .selectAll("stop")
+                    .data(colorAry)
+                    .enter()
+                    .append("stop")
+                    .attr({
+                        "offset": function(d,i){return colorSpacing * (i+1) + "%"},
+                        "stop-color":function(d,i){return colorAry[i]},
+                        "stop-opacity":1
+                    })
+
+            var svgColorBarAxisY = d3.svg.axis( )
+                    .scale( d3.scale.linear()
+                        .range([ h, hm.margin.t])
+                        .domain(d3.extent(dataset, function (d) { return d[field_z];} ) )
+                    )
+                    .ticks( 10 )
+                    .tickSubdivide( true )
+                    .orient("right")
+
+            svgColorBar.append("g")
+                    .append("rect")
+                    .attr({
+                        "width": widthColors,
+                        "height": h - hm.margin.t,
+                        x: 0,
+                        y: hm.margin.t,
+                        stroke:"#000000",
+                        "stroke-width":1
+                    })
+                    .style(
+                    {
+                        "fill":"url(#colorBarGradient)"
+                    });
+
+            svgColorBar.append("g")
+                    .attr({
+                        "width": widthColors,
+                        "height": h,
+                        "transform":"translate(20,0)",
+                        "class":"axis"
+                    })
+                    .call( svgColorBarAxisY )
+
+        }
+
+        function dataTransition(){
+
+            var d = downloads[downloadCount-1],
+                    dataset = d.data,
+                    field_z = $("#sel_variableZtransition").val();
+
+            var d = downloads[downloadCount-1],
+                    dataset = d.data;
+
+            var colors = ['darkblue', 'mediumblue', 'blue', 'aqua', 'lightgreen', 'yellow', 'orange', 'orangered', 'red', 'darkred'],
+                    colorScaler = d3.scale.linear().range(colors);
+
+            var scale = d3.scale.linear()
+                    .domain([0, colors.length-1])
+                    .range(d3.extent(d.data, function(d) {return d[field_z];}));
+
+            colorScaler.domain(d3.range(colors.length).map(scale));
+
+            svg.selectAll("rect")
+                    //.transition()
+                    .attr("fill", function(d){
+                        return colorScaler(d[field_z])
+                    });
+
+        }
+
+        // page elements
+
+        // select element for dataset
+        $.each(csvFileNames,function(fileName){
+            $("#sel_datasets")
+                    .append( new Option(fileName, csvFileNames[fileName]));
+        });
+
+        // select element for z variable
+        $.each(variables.z, function(variable){
+
+            $("#sel_variableZdefault")
+                    .append( new Option(variables.z[variable].name, variables.z[variable].field));
+
+            $("#sel_variableZtransition")
+                    .append( new Option(variables.z[variable].name, variables.z[variable].field));
+        });
+
+
+        // element events
+
+        $("#btnChartDraw").on("click",function(){
+
+
+            dataDownload();
+
+
+        });
+
+        $("#btnChartTransition").on("click",function(){
+
+            dataTransition();
+
+        });
+
+    });
+
+</script>
+</body>
+</html>
