@@ -60,12 +60,24 @@
             <div class="container-fluid">
                 <div class="row-fluid">
                     <div class="span12">
-                       Select Dataset: <select id="sel_datasets"></select> <br>
-                       Select Parameter: <select id="sel_variableZdefault"></select><br />
+                        <div id="dSelectDatasets">
+                            <select id="sel_datasets">
+                                <option selected="selected">Select Dataset</option>
+                           </select>
+                            <img src="" id="imgLoading" style="visibility:hidden" />
+                        </div>
+                        <div id="dSelectParameter">
+                            <select id="sel_variableZdefault"></select>
+                        </div>
+                        <div id="dSelectColorSet">
+
+
+                        </div>
+
                        <button class="btn btn-primary" id="btnChartDraw">Draw Chart</button><br />
 
                        Transition To: <select id="sel_variableZtransition"></select><br />
-                        <button class="btn btn-primary" id="btnChartTransition">Draw Chart</button><br />
+                        <button class="btn btn-primary" id="btnChartTransition">Transition </button><br />
 
                     </div>
             </div>
@@ -82,10 +94,10 @@
 
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
 <script type="text/javascript" src="http://epe.marine.rutgers.edu/visualization/js/bootstrap.js"></script>
-<script type="text/javascript" src="http://epe.marine.rutgers.edu/visualization/js/d3.v2.min.js"></script>
+<script src="http://d3js.org/d3.v2.js"></script>
 <script type="text/javascript">
 
-    var downloads = [];
+    var downloads = [], colorSelector;
 
     var p = $(function() {
 
@@ -93,7 +105,7 @@
             hovmoller: {
                 width: $("#hovmoller").width(),
                 height:  $("#hovmoller").height(),
-                margin:{t:10,r:10,b:30,l:25}
+                margin:{t:40,r:10,b:70,l:25}
             },
             colorBar:{
                 widthAxis:50,
@@ -140,7 +152,7 @@
             ]
         };
 
-        var svg;
+        var svg, svgColorBar;
 
         //z tempwat, condwat, pracsal, density, optparw, flubsct, cdomflo, chlaflo, doconcs
 
@@ -174,10 +186,12 @@
 
                 // chart data
                 dataChart();
+
+                // turn downloading image off
+
             });
 
         }
-
 
         function dataChart(){
 
@@ -185,11 +199,14 @@
                 dataset = d.data,
                 hm = layout.hovmoller,
                 cb = layout.colorBar,
-                field_z = $("#sel_variableZdefault").val();
+                field_z = $("#sel_variableZdefault").val(),
+                colors = [];
 
-            var colorsOrig = ['darkblue', 'mediumblue', 'blue', 'aqua', 'lightgreen', 'yellow', 'orange', 'orangered', 'red', 'darkred'],
-                    colors = ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00", "#FFA500","#FF4500","#FF0000","#8B0000"],
-                colorScaler = d3.scale.linear().range(colors);
+            console.log("charting data");
+
+            colors = colorSelector.getColorArray("epe1");
+
+            var colorScaler = d3.scale.linear().range(colors);
 
             var scale = d3.scale.linear()
                     .domain([0, colors.length-1])
@@ -218,13 +235,44 @@
                     .orient("left")
                     .ticks(5);
 
-            svg = d3.select("#hovmoller")
+            $("#hovmoller").empty();
+
+            var svgContainer = d3.select("#hovmoller")
                     .append("svg")
+                    .attr("id","hovmollerContainer")
+                    .append("svg:g")
+                    .attr({
+                        width : hm.widthChart - hm.margin.l + 1,
+                        height: hm.heightChart - hm.margin.t
+                    })
+
+
+            svgContainer.append("svg:text")
+                    .attr("id","hovmollerTitle")
+                    .attr("text-anchor", "middle")
+                    .attr("x", (hm.widthChart - hm.margin.l)/2)
+                    .attr("y", hm.margin.t / 2)
+                    .attr("font-weight","bolder")
+                    .attr("fill","purple")
+                    .text("Hovmoller for...")
+
+            svgContainer.append("svg:text")
+                    .attr("text-anchor", "middle")
+                    .attr("x", -(hm.heightChart - hm.margin.t)/2)
+                    .attr("y", hm.margin.l / 2)
+                    .attr("font-weight","bolder")
+                    .attr("class", "chart-label-y")
+                    .attr("fill","purple")
+                    .attr("transform", "rotate(270)")
+                    .text("Depth (meters)")
+
+            svg = svgContainer.append("svg:g")
                     .attr("id","hovmollerSvg")
                     .attr("width", hm.width)
-                    .attr("height", hm.height);
+                    .attr("height", hm.height)
+                    .attr("transform","translate(20,0)")
 
-            svg.append("svg:g")
+            svgContainer.append("svg:g")
                 .append("svg:clipPath")
                 .attr("id", "clipper")
                 .append("svg:rect")
@@ -281,11 +329,12 @@
                     .call(yAxis);
 
             // Color Bar
-            colorBar(dataset,field_z,colors);
+            //colorBar(dataset,field_z,colors);
+            colorBarVertical(dataset,field_z,colors);
 
         }
 
-        function colorBar( dataset, field_z, colorAry){
+        function colorBarVertical( dataset, field_z, colorAry){
 
             // how to deal with scale labels of different size 29.3 salinity vs. 3 degrees temp
             // height, width
@@ -298,14 +347,15 @@
 
             var h = hm.heightChart;
 
-            var colorSpacing = Math.floor((100/(colorAry.length+1)));
+            var colorSpacing = 100 / ( colorAry.length - 1 );
+            //var colorSpacing = Math.floor((100/(colorAry.length+1)));
 
-            var svgColorBar = d3.select("#hovmollerSvg")
+            svgColorBar = d3.select("#hovmollerSvg")
                     .append("svg:g")
                     .attr({
                         "width"     : widthAxis,
                         "height"    : h,
-                        "id"        : "hovmollerSvgColorBar_" + Math.random(1,100),
+                        "id"        : "hovmollerSvgColorBar",
                         "transform" : "translate(" + (hm.widthChart + offsetX) + ",0)"
                     });
 
@@ -323,14 +373,14 @@
                     .enter()
                     .append("stop")
                     .attr({
-                        "offset": function(d,i){return colorSpacing * (i+1) + "%"},
+                        "offset": function(d,i){return colorSpacing * (i) + "%"},
                         "stop-color":function(d,i){return colorAry[i]},
                         "stop-opacity":1
-                    })
+                    });
 
             var svgColorBarAxisY = d3.svg.axis( )
                     .scale( d3.scale.linear()
-                        .range([ h, hm.margin.t])
+                        .range([ h, hm.margin.t ])
                         .domain(d3.extent(dataset, function (d) { return d[field_z];} ) )
                     )
                     .ticks( 10 )
@@ -363,17 +413,106 @@
 
         }
 
+        function colorBarHorizontal( dataset, field_z, colorAry){
+
+            // how to deal with scale labels of different size 29.3 salinity vs. 3 degrees temp
+            // height, width
+            var l = layout,
+                    cb = l.colorBar,
+                    hm = l.hovmoller,
+                    offsetX = cb.marginOffsetX;
+
+            var h = hm.heightChart;
+
+            var colorSpacing = Math.floor((100/(colorAry.length+1)));
+
+            svgColorBar = d3.select("#hovmollerSvg")
+                    .append("svg:g")
+                    .attr({
+                        "width"     : hm.widthChart,
+                        "height"    : 70,
+                        "id"        : "hovmollerSvgColorBar",
+                        "transform" : "translate(0,"+ (hm.heightChart + 40)  +")"
+                    });
+
+            var colorBarDefs = svgColorBar.append("defs")
+                    .append("linearGradient")
+                    .attr({
+                        id : "colorBarGradient",
+                        x1 : "0%",
+                        y1 : "0%",
+                        x2 : "100%",
+                        y2 : "0%"
+                    })
+                    .selectAll("stop")
+                    .data(colorAry)
+                    .enter()
+                    .append("stop")
+                    .attr({
+                        "offset": function(d,i){return colorSpacing * (i+1) + "%"},
+                        "stop-color":function(d,i){return colorAry[i]},
+                        "stop-opacity":1
+                    });
+
+            var svgColorBarAxisY = d3.svg.axis( )
+                    .scale( d3.scale.linear()
+                    .range([ hm.margin.l, hm.widthChart ])
+                    .domain(d3.extent(dataset, function (d) { return d[field_z];} ) )
+            )
+                    .ticks( 10 )
+                    .tickSubdivide( true )
+                    //.orient("bottom")
+
+            svgColorBar.append("g")
+                    .append("rect")
+                    .attr({
+                        "width": hm.widthChart - hm.margin.l,
+                        "height": 20, //h - hm.margin.t,
+                        x: hm.margin.l,
+                        y: 0, //hm.heightChart,
+                        stroke:"#000000",
+                        "stroke-width":1
+                    })
+                    .style(
+                    {
+                        "fill":"url(#colorBarGradient)"
+                    });
+
+            svgColorBar.append("g")
+                    .attr({
+                        "width": hm.widthChart,
+                        "height": 40,
+                        "transform":"translate(0,20)",
+                        "class":"axis"
+                    })
+                    .call( svgColorBarAxisY )
+
+        }
+
         function dataTransition(){
 
             var d = downloads[downloadCount-1],
                     dataset = d.data,
-                    field_z = $("#sel_variableZtransition").val();
+                    field_z = $("#sel_variableZdefault").val(),
+                    //field_z = $("#sel_variableZtransition").val(),
+                    colorSet;
+            // set colorSet
 
-            var d = downloads[downloadCount-1],
-                    dataset = d.data;
+            switch(field_z){
+                case "tempwat":
+                    colorSet = "epe1"
+                    break;
+                case "pracsal":
+                case "density":
+                    colorSet = "epe2"
+                    break;
+            }
 
-            var colors = ['darkblue', 'mediumblue', 'blue', 'aqua', 'lightgreen', 'yellow', 'orange', 'orangered', 'red', 'darkred'],
-                    colorScaler = d3.scale.linear().range(colors);
+            var colors = colorSelector.getColorArray(colorSet);
+
+            //var colors = ['darkblue', 'mediumblue', 'blue', 'aqua', 'lightgreen', 'yellow', 'orange', 'orangered', 'red', 'darkred'],
+            var        colorScaler = d3.scale.linear().range(colors);
+
 
             var scale = d3.scale.linear()
                     .domain([0, colors.length-1])
@@ -382,10 +521,81 @@
             colorScaler.domain(d3.range(colors.length).map(scale));
 
             svg.selectAll("rect")
-                    //.transition()
+                    .transition()
                     .attr("fill", function(d){
                         return colorScaler(d[field_z])
                     });
+        }
+
+//        function getColorArray(field){
+//            var colors = [];
+//
+//            //colors = ['darkblue', 'mediumblue', 'blue', 'aqua', 'lightgreen', 'yellow', 'orange', 'orangered', 'red', 'darkred'],
+//
+//            switch(field){
+//
+//                case "tempwat":
+//                case "seawater_temp":
+//
+//                    colors = ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00", "#FFA500","#FF4500","#FF0000","#8B0000"];
+//                    break;
+//
+//                case "pracsal":
+//                    colors = ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00", "#FFA500","#FF4500","#FF0000","#8B0000"];
+//
+//                case "density":
+//                    colors = ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00", "#FFA500","#FF4500","#FF0000","#8B0000"];
+//
+//                default:
+//                    colors = ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00", "#FFA500","#FF4500","#FF0000","#8B0000"];
+//                    break;
+//            }
+//
+//            return colors;
+//
+//        }
+
+        function ctrl_color_selector(defaultColorSet, targetDiv){
+
+            var self = this;
+
+            self.colorSets = {
+                "epe1": ["#00008B","#0000CD","#0000FF","#00FFFF","#7CFC00","#FFFF00","#FFA500","#FF4500","#FF0000","#8B0000"],
+                "epe2": ["#8B0000","#FF0000","#FF4500","#FFA500","#FFFF00","#7CFC00","#00FFFF","#0000FF","#0000CD","#00008B"],
+                "epe3": ["#8B0000","#FF0000","#FF4500","#FFA500","#FFFF00","#7CFC00","#00FFFF","#0000FF","#0000CD","#00008B"]
+            };
+
+            self.getColorArray = function(colorOption){
+                return self.colorSets[colorOption];
+            };
+
+            self.container = $('<div style="container-fluid"></div>')
+
+            // create radio button and svg area
+            $.each(self.colorSets, function(colorSet){
+
+                        console.log("");
+                        var row = $("<div></div>")
+
+                        var rdo = $("<input />")
+                                .attr({
+                                    "type":"radio",
+                                    "name":"colorset"
+
+                                })
+
+                                .html('<svg height="100" width="250"><text>hello yay</text></svg>')
+
+                        console.log("radio.. append...", rdo);
+
+                        self.container.append(rdo);
+
+                }
+            );
+
+            //self.createControl = function(){
+            $(targetDiv).html("this is a test " + defaultColorSet );
+
 
         }
 
@@ -407,20 +617,44 @@
                     .append( new Option(variables.z[variable].name, variables.z[variable].field));
         });
 
+        colorSelector = new ctrl_color_selector("epe1", "#dSelectColorSet");
 
         // element events
 
         $("#btnChartDraw").on("click",function(){
 
-
             dataDownload();
-
 
         });
 
         $("#btnChartTransition").on("click",function(){
 
             dataTransition();
+
+        });
+
+
+        $("#sel_datasets").on("change",function(){
+
+            if (this.value != "Select Dataset") {
+
+                dataDownload();
+
+
+            }
+        });
+
+        $("#sel_variableZdefault").on("change",function(){
+
+            alert("sel_variableZdefault change");
+
+            console.log("sel_variableZdefault", this);
+
+            if (this.value != "Select Parameter") {
+
+                dataChart();
+
+            }
 
         });
 
