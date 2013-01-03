@@ -4,14 +4,13 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Mike Mills and Sage Lichtenwalner, Rutgers University
-// Revised 9/24/12
-// Version 0.1.9
 
 var EV2_Time_Series_Explorer = function ( domID, customToolConfiguration ) {
 
     var self = this;
     this.evtool = new EVTool();
     this.sos = new ioosSOS();
+    this.version = "0.2.1";
 
     // Default Configuration
     this.configuration = {

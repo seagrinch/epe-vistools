@@ -4,14 +4,13 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 10/23/12
-// Version 0.1.8.1
 
 var EV3_Glider_Profile_Explorer = function (divId, customToolConfiguration) {
 
     var self = this;
 
     this.evTool = new EVTool();
+    this.version = "0.2.1";
 
     /***************************************/
     // SETTINGS - Observations

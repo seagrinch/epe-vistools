@@ -4,8 +4,6 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 11/11/12
-// Version 0.1.9
 
 var EV5_NDBC_Data_Comparator = function (domID, customConfiguration) {
 
@@ -13,6 +11,7 @@ var EV5_NDBC_Data_Comparator = function (domID, customConfiguration) {
 
     this.evtool = new EVTool();
     this.sos = new ioosSOS();
+    this.version = "0.2.1";
 
     this.tool = {};
 

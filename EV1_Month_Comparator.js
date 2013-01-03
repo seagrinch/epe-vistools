@@ -4,8 +4,6 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 11/27/12
-// Version 0.2.3
 
 var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
@@ -14,6 +12,8 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
     this.evtool = new EVTool();
     this.sos = new ioosSOS();
+    this.version = "0.2.4";
+
 
     // define the default tool configuration.. used when no configuration override is provided
     this.configuration = {
@@ -525,7 +525,7 @@ EV1_Month_Comparator.prototype.uiControls = function () {
         .append(
             $("<label />")
                 .attr({'for': id + '-ctrl-dropdown-station', 'title':"Select a Station"})
-                .css("display", "inline-block")
+                .css({"display": "inline-block","font-weight":"bold"})
                 .html("Station")
         )
         .append(ctrl_dd_station_select);
@@ -560,7 +560,7 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                     'for': id + '-ctrl-dropdown-observation',
                     'title':"Select an Observation"
                 })
-                .css("display", "inline-block")
+                .css({"display": "inline-block","font-weight":"bold"})
                 .html("Observation")
         )
         .append(ctrl_dd_observation_select);
@@ -1393,8 +1393,6 @@ EV1_Month_Comparator.prototype.requestData = function (month, year, color) {
             observation = $("#" +  id + "-ctrl-dropdown-observation").val(),
             nextDate = new Date(year, month, 1),
             nextMonth = nextDate.getMonth() + 1;
-
-        //CONSOLE LOG//console.log("Month:" + month + "Year: " + year + "Station: " + station + "  Observation: " + observation);
 
         if (nextMonth < 10) { nextMonth = "0" + nextMonth; }
 
