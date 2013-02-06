@@ -4,8 +4,6 @@
 // Education & Public Engagement Implementing Organization
 //
 // Written by Michael Mills and Sage Lichtenwalner, Rutgers University
-// Revised 9/21/12
-// Version 0.2.1
 
 var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
@@ -14,6 +12,8 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
     this.evtool = new EVTool();
     this.sos = new ioosSOS();
+    this.version = "0.2.4";
+
 
     // define the default tool configuration.. used when no configuration override is provided
     this.configuration = {
@@ -44,30 +44,30 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
         "datasets" : {
 
-            "2009-01" : {
+            "2009_01" : {
                 "isVisible" : true,
                 "color"      : "#CCC"
             },
-            "2010-01" : {
+            "2010_01" : {
                 "isVisible" : false,
                 "color"      : "#666"
             },
-            "2011-01" : {
+            "2011_01" : {
                 "isVisible" : true,
                 "color"      : "#999"
             },
-            "2012-01" : {
+            "2012_01" : {
                 "isVisible" : false,
                 "color"      : "#6699CC"
             }
         },
 
-        "months": [
-            "2009-01|1|#CCC",
-            "2011-01|1|#666",
-            "2010-01|1|#999",
-            "2012-01|1|#6699CC"
-        ],
+//        "months": [
+//            "2009-01|1|#CCC",
+//            "2011-01|1|#666",
+//            "2010-01|1|#999",
+//            "2012-01|1|#6699CC"
+//        ],
 
         "mean_lines":"visible"
     };
@@ -161,8 +161,13 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
     this.tool.chart = {
 
         "timeseries":{
-            x:null,
-            y:null
+            "observation" : "",
+            "station"     : "",
+            "datasets"    : {},
+            "extents"     : {
+                "x" : {},
+                "y" : {}
+            }
         },
 
         formats:{
@@ -176,15 +181,15 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
     };
 
     // initialize the timeseries object, where all monthly data will be stored
-    this.tool.chart.timeseries = {
-        "observation" : "",
-        "station"     : "",
-        "datasets"    : {},
-        "extents"     : {
-            "x" : {},
-            "y" : {}
-        }
-    };
+//    this.tool.chart.timeseries = {
+//        "observation" : "",
+//        "station"     : "",
+//        "datasets"    : {},
+//        "extents"     : {
+//            "x" : {},
+//            "y" : {}
+//        }
+//    };
 
     // set the available values for the inputs
     this.inputs = {
@@ -202,7 +207,6 @@ var EV1_Month_Comparator = function ( domId, customToolConfiguration ) {
 
     // load defaults if provided
     this.loadDefaultTimeseries( );
-
 
 
 };
@@ -490,9 +494,9 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                 tmpYear = $("#" + id + "-ctrl-dropdown-year").val(),
                 tmpColor = $("#" + id + "-ctrl-colorpicker").val();
 
-            self.tool.configuration.custom.datasets[tmpYear + "-" + tmpMonth] = tmpYear + "-" + tmpMonth + "|1|" + tmpColor;
+            //self.tool.configuration.custom.datasets[tmpYear + "_" + tmpMonth] = {isLoaded:false};
 
-            self.requestData(tmpMonth,tmpYear,tmpColor);
+            self.requestData(tmpMonth, tmpYear, tmpColor);
 
         })
         .html("Add Month");
@@ -521,7 +525,7 @@ EV1_Month_Comparator.prototype.uiControls = function () {
         .append(
             $("<label />")
                 .attr({'for': id + '-ctrl-dropdown-station', 'title':"Select a Station"})
-                .css("display", "inline-block")
+                .css({"display": "inline-block","font-weight":"bold"})
                 .html("Station")
         )
         .append(ctrl_dd_station_select);
@@ -556,7 +560,7 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                     'for': id + '-ctrl-dropdown-observation',
                     'title':"Select an Observation"
                 })
-                .css("display", "inline-block")
+                .css({"display": "inline-block","font-weight":"bold"})
                 .html("Observation")
         )
         .append(ctrl_dd_observation_select);
@@ -592,7 +596,6 @@ EV1_Month_Comparator.prototype.uiControls = function () {
                 .css({"display":"inline-block", "margin":"6px"})
                 .html("Show Mean Lines")
         );
-
 
     // Control Legend
 
@@ -776,14 +779,23 @@ EV1_Month_Comparator.prototype.loadDefaultTimeseries = function () {
     var self = this,
         datasets = self.tool.configuration.custom.datasets;
 
+console.log("loadDefaultTimeseries:", datasets);
+
+    // -->
+    // 2009_01: Object
+    // color: "#CCC"
+    // isVisible: true
+
     // load all datasets from configuration
     $.each( datasets, function ( ds_name, dataset ) {
 
-        var year_month = ds_name.split("-"),
+        var year_month = ds_name.split("_"),
             year = year_month[0],
             month = year_month[1];
 
-        self.requestData(month,year, dataset.color);
+        datasets[ds_name].isLoaded = false;
+
+        self.requestData(month, year, dataset.color);
 
     });
 };
@@ -791,7 +803,8 @@ EV1_Month_Comparator.prototype.loadDefaultTimeseries = function () {
 EV1_Month_Comparator.prototype.timeseriesParseData = function ( ds_name ) {
 
     var self = this;
-    var datasets = self.tool.chart.timeseries.datasets;
+    //var datasets = self.tool.chart.timeseries.datasets;
+    var datasets = self.tool.configuration.custom.datasets;
     var ds = datasets[ds_name], id = self.tool.domID;
 
     // is there data?
@@ -867,7 +880,9 @@ EV1_Month_Comparator.prototype.timeseriesParseData = function ( ds_name ) {
 EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
 
     var self = this,
-        ds = self.tool.chart.timeseries.datasets[ds_name],
+        //ds = self.tool.chart.timeseries.datasets[ds_name],
+        config = self.tool.configuration.custom,
+        ds = config.datasets[ds_name],
         extents = self.tool.chart.timeseries.extents,
         g = self.tool.layout.chart,
         layout = self.tool.layout,
@@ -879,11 +894,9 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
         tooltip = self.tool.chart.tooltip,
         units = self.observations[ds.observation].units,
         id = self.tool.domID,
-        config = self.tool.configuration.custom,
         scaled_width = ( (layout.chart.width-100) / 31) * dates.month_days,
         line_x = d3.time.scale().range( [ 0, scaled_width ] ).domain( [ dates.range_begin, dates.range_end ]),
         line_y = self.tool.chart.timeseries.y;
-
 
     // update extents for y
     line_y.domain( self.bufferData( [ extents.y.min, extents.y.max ] ) );
@@ -985,7 +998,6 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
 
     var date_format = d3.time.format("%m/%d/%Y-%H:%M");
 
-
     //todo: dateformat change.. logged in JIRA: issue 96
 
     self.tool.chart.tooltips = svg_container
@@ -1040,7 +1052,9 @@ EV1_Month_Comparator.prototype.timeseriesAdd = function (ds_name) {
 EV1_Month_Comparator.prototype.legendRefresh = function ( ) {
 
     var self = this,
-        datasets = self.tool.chart.timeseries.datasets,id = self.tool.domID;
+        //datasets = self.tool.chart.timeseries.datasets,
+        datasets = self.tool.configuration.custom.datasets,
+        id = self.tool.domID;
 
     $("#" + id + " .monthy-stats").remove();
 
@@ -1186,7 +1200,8 @@ EV1_Month_Comparator.prototype.legendUpdate = function ( sortToggle ) {
 EV1_Month_Comparator.prototype.recalculateExtents = function(){
 
     var self = this,
-        datasets = self.tool.chart.timeseries.datasets,
+        //datasets = self.tool.chart.timeseries.datasets,
+        datasets = self.tool.configuration.custom.datasets,
         extents = self.tool.chart.timeseries.extents;
 
     extents.y = {};
@@ -1232,10 +1247,11 @@ EV1_Month_Comparator.prototype.redrawY = function () {
 
     var g = self.tool.layout.chart,
         extents = self.tool.chart.timeseries.extents,
-        datasets = self.tool.chart.timeseries.datasets,
+        //datasets = self.tool.chart.timeseries.datasets,
         colX = "date_time", yAxis,
         id = self.tool.domID,
-        config = self.tool.configuration.custom;
+        config = self.tool.configuration.custom,
+        datasets = config.datasets;
 
     //update y axis using global y scale
     self.recalculateExtents();
@@ -1246,7 +1262,7 @@ EV1_Month_Comparator.prototype.redrawY = function () {
 
         if ( ds.isDrawReady && ds.isVisible) { //&& dset.isVisible
 
-            console.log("dataset",ds_name, "is visible", ds.isVisible);
+            console.log("dataset", ds_name, "is visible", ds.isVisible);
 
             var line_y = self.tool.chart.timeseries.y,
                 colY = ds.colY;
@@ -1284,7 +1300,6 @@ EV1_Month_Comparator.prototype.redrawY = function () {
                 .transition()
                 .duration(750)
                 .attr("d", newline( ds.data ));
-
 
             // only transition Y!!!
             var newcircles = d3.selectAll("#" + id + " .circle_" + ds_name)
@@ -1330,7 +1345,8 @@ EV1_Month_Comparator.prototype.redrawY = function () {
 
 EV1_Month_Comparator.prototype.toggleMeanLines = function ( ) {
     var self = this,
-        datasets = self.tool.chart.timeseries.datasets,
+        //datasets = self.tool.chart.timeseries.datasets,
+        datasets = self.tool.configuration.custom.datasets,
         id = self.tool.domID
 
     if ( $('#' +  id + '-ctrl-checkbox-mean-lines').is(':checked')) {
@@ -1348,25 +1364,35 @@ EV1_Month_Comparator.prototype.toggleMeanLines = function ( ) {
 };
 
 // REQUESTS
-EV1_Month_Comparator.prototype.requestData = function (month,year,color) {
+EV1_Month_Comparator.prototype.requestData = function (month, year, color) {
 
     console.log("Loading CSV....");
 
     var self = this,
-        id = self.tool.domID;
+        id = self.tool.domID,
+        config = self.tool.configuration.custom;
 
     $("#"+ id + "-img_loading_data").show();
 
     var ds_name = year + '_' + month;
 
-    if ( typeof(self.tool.chart.timeseries.datasets[ds_name] ) == "undefined") {
+    var loadData = false;
+
+    if ( typeof(config.datasets[ds_name]) === "undefined") {
+        loadData = true;
+        config.datasets[ds_name] = { isLoaded : false };
+    }
+    else
+    {
+        loadData = config.datasets[ds_name].isLoaded ? false : true;
+    }
+
+    if( loadData ){
 
         var station = $("#" +  id + "-ctrl-dropdown-station").val(),
             observation = $("#" +  id + "-ctrl-dropdown-observation").val(),
             nextDate = new Date(year, month, 1),
             nextMonth = nextDate.getMonth() + 1;
-
-        //CONSOLE LOG//console.log("Month:" + month + "Year: " + year + "Station: " + station + "  Observation: " + observation);
 
         if (nextMonth < 10) { nextMonth = "0" + nextMonth; }
 
@@ -1379,39 +1405,39 @@ EV1_Month_Comparator.prototype.requestData = function (month,year,color) {
             }
         );
 
-        //CONSOLE LOG/console.log("CSV Via Proxy: " + request_url);
-
         // request CSV data, send response to callback function
         d3.csv(request_url, function (ts_data) {
 
             // todo:check length here to report empty dataset?
 
-            self.tool.chart.timeseries.datasets[ds_name] = {
-                data        : ts_data,
-                observation : observation,
-                colY        : self.observations[observation].column,
-                month       : month,
-                station     : station,
-                year        : year,
-                color       : color,
-                isDrawReady : false,
-                isVisible   : true,
-                hasData     : false
-                //todo: get reference to observation
-            };
+            $.extend(self.tool.configuration.custom.datasets[ds_name],
+                {
+                    data        : ts_data,
+                    observation : observation,
+                    colY        : self.observations[observation].column,
+                    month       : month,
+                    year        : year,
+                    station     : station,
+                    color       : color,
+                    isDrawReady : false,
+                    isVisible   : true,
+                    hasData     : false,
+                    isLoaded    : true
+                });
 
             self.timeseriesParseData( ds_name );
 
         });
     }
+
     else {
         alert("This month is already in your list. Please choose another Month and/or year.");
 
         $("#"+ id + "-csv_loading").hide();
         $("#"+ id + "-img_loading_data").hide();
     }
-};
 
+};
 
 EV1_Month_Comparator.prototype.bufferData = function (d) {
 
@@ -1427,7 +1453,8 @@ EV1_Month_Comparator.prototype.updateStationAndObservation = function () {
     var self = this, id = self.tool.domID,
         observation = $("#" + id + "-ctrl-dropdown-observation").val(),
         station = $("#" + id + "-ctrl-dropdown-station").val(),
-        datasets = self.tool.chart.timeseries.datasets;
+        //datasets = self.tool.chart.timeseries.datasets;
+        datasets = self.tool.configuration.custom.datasets;
 
     self.tool.chart.timeseries.extents = {
         x:{},
@@ -1462,7 +1489,7 @@ EV1_Month_Comparator.prototype.updateStationAndObservation = function () {
         datasets[ds_name].observation = observation;
 
         // remove all svg and legend items for this dataset
-        d3.select("#" + id + "-svg-g-" + ds_name).remove();
+        $("#" + id + "-svg-g-" + ds_name).remove();
 
         // set the title and the y-axis label
         d3.select("#" + id + "-chart-label-title").text(self.observations[observation].label + " at " + self.stations[station].label);
@@ -1494,16 +1521,15 @@ EV1_Month_Comparator.prototype.removeDataset = function ( datasetName ){
         id = self.tool.domID,
         datasets = self.tool.configuration.custom.datasets;
 
-    // remove from legend
-    $("#" + id + "-stats_legend_" + datasetName ).remove();
-
     // remove all elements from dom.. used array for simple additions
     [
+        "-stats_legend_",
         "-svg_",
         "-svgmean_",
         "-svgmean-blank-",
         "-svg_circles_",
-        "-svg_legend_toggle_"
+        "-svg_legend_toggle_",
+        "-svg-g-"
     ].forEach( function( element ){
 
         $( "#" + id + element + datasetName ).remove();
@@ -1512,7 +1538,7 @@ EV1_Month_Comparator.prototype.removeDataset = function ( datasetName ){
 
     delete datasets[datasetName];
 
-    //self.tool.configuration.custom.datasets[tmpYear + "-" + tmpMonth] = tmpYear + "-" + tmpMonth + "|1|" + tmpColor;
+    console.log("DELETE", "delete datasets[datasetName] ", datasets[datasetName]);
 
     self.redrawY();
 };
